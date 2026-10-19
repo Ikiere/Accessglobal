@@ -1,0 +1,30 @@
+{
+  "name": "accessglobal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AccessGlobal platform monorepo - Frontend portal and Admin dashboard",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build:admin": "npm run build --workspace=apps/admin",
+    "build": "npm run build --workspaces --if-present",
+    "preview:frontend": "npm run preview --workspace=apps/frontend",
+    "preview:admin": "npm run preview --workspace=apps/admin",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "keywords": [
+    "accessglobal",
+    "react",
+    "monorepo",
+    "vite",
+    "vercel",
+    "admin-dashboard",
+    "frontend"
+  ],
+  "author": "Zerocoded",
+  "license": "MIT"
+}

@@ -1,0 +1,38 @@
+:root {
+  /* Admin Dark Theme Palette */
+  --admin-bg-root: #06080d;
+  --admin-bg-sidebar: #0a0e17;
+  --admin-bg-surface: #101622;
+  --admin-bg-card: rgba(16, 22, 34, 0.75);
+  --admin-bg-card-hover: rgba(24, 33, 49, 0.9);
+  --admin-bg-input: #0b0f19;
+
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-focus: rgba(99, 102, 241, 0.5);
+
+  --admin-text-primary: #f8fafc;
+  --admin-text-secondary: #94a3b8;
+  --admin-text-muted: #64748b;
+
+  --admin-accent: #6366f1;
+  --admin-accent-hover: #4f46e5;
+  --admin-accent-glow: rgba(99, 102, 241, 0.25);
+  --admin-accent-cyan: #38bdf8;
+
+  --admin-success: #10b981;
+  --admin-success-bg: rgba(16, 185, 129, 0.12);
+  --admin-warning: #f59e0b;
+  --admin-warning-bg: rgba(245, 158, 11, 0.12);
+  --admin-danger: #ef4444;
+  --admin-danger-bg: rgba(239, 68, 68, 0.12);
+
+  --admin-radius-sm: 6px;
+  --admin-radius-md: 10px;
+  --admin-radius-lg: 14px;
+
+  --admin-font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --admin-font-mono: 'JetBrains Mono', monospace;
+
+  --admin-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --admin-shadow-glow: 0 0 25px -4px rgba(99, 102, 241, 0.2);
+}
