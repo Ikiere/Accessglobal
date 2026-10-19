@@ -118,7 +118,7 @@ const categories = ['All', 'E-Bikes', 'Clothing', 'Shoes', 'Appliances', 'Perfum
 interface ProductGridProps {
   currentCategory: string;
   onSelectCategory: (category: string) => void;
-  onAddToCart: (productName: string) => void;
+  onAddToCart: (product: Product) => void;
 }
 
 export const ProductGrid = ({
@@ -141,7 +141,7 @@ export const ProductGrid = ({
 
   const handleAdd = (product: Product) => {
     setAddedIds((prev) => ({ ...prev, [product.id]: true }));
-    onAddToCart(product.name);
+    onAddToCart(product);
 
     setTimeout(() => {
       setAddedIds((prev) => ({ ...prev, [product.id]: false }));

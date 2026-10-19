@@ -27,7 +27,7 @@ export const Footer = ({ onShowToast, onSelectCategory }: FooterProps) => {
     <footer>
       <div className="wrap">
         <div className="fg">
-          <div>
+          <div className="fg-newsletter">
             <h5>Get 10% off your first order</h5>
             <p style={{ color: '#55587e' }}>
               Join for early access to drops and deals.
@@ -44,33 +44,35 @@ export const Footer = ({ onShowToast, onSelectCategory }: FooterProps) => {
               <button type="submit">Join</button>
             </form>
           </div>
-          <div>
-            <h5>Shop</h5>
-            <ul>
-              <li onClick={() => handleCategoryClick('E-Bikes')}>E-Bikes</li>
-              <li onClick={() => handleCategoryClick('Clothing')}>Clothing</li>
-              <li onClick={() => handleCategoryClick('Shoes')}>Shoes</li>
-              <li onClick={() => handleCategoryClick('Appliances')}>Appliances</li>
-              <li onClick={() => handleCategoryClick('Perfumes')}>Perfumes</li>
-            </ul>
-          </div>
-          <div>
-            <h5>Company</h5>
-            <ul>
-              <li>About AGM</li>
-              <li>Sell with us</li>
-              <li>Careers</li>
-              <li>Press</li>
-            </ul>
-          </div>
-          <div>
-            <h5>Support</h5>
-            <ul>
-              <li>Track order</li>
-              <li>Returns</li>
-              <li>Shipping</li>
-              <li>Contact</li>
-            </ul>
+          <div className="fg-links">
+            <div className="fg-col">
+              <h5>Shop</h5>
+              <ul>
+                <li onClick={() => handleCategoryClick('E-Bikes')}>E-Bikes</li>
+                <li onClick={() => handleCategoryClick('Clothing')}>Clothing</li>
+                <li onClick={() => handleCategoryClick('Shoes')}>Shoes</li>
+                <li onClick={() => handleCategoryClick('Appliances')}>Appliances</li>
+                <li onClick={() => handleCategoryClick('Perfumes')}>Perfumes</li>
+              </ul>
+            </div>
+            <div className="fg-col">
+              <h5>Company</h5>
+              <ul>
+                <li>About AGM</li>
+                <li>Sell with us</li>
+                <li>Careers</li>
+                <li>Press</li>
+              </ul>
+            </div>
+            <div className="fg-col">
+              <h5>Support</h5>
+              <ul>
+                <li>Track order</li>
+                <li>Returns</li>
+                <li>Shipping</li>
+                <li>Contact</li>
+              </ul>
+            </div>
           </div>
         </div>
         <div className="mega" aria-hidden="true">

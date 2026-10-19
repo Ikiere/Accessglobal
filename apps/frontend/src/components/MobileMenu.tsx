@@ -3,6 +3,8 @@ interface MobileMenuProps {
   currentUser: string | null;
   onClose: () => void;
   onOpenAuth: (mode: 'login' | 'signup') => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
 }
 
 export const MobileMenu = ({
@@ -10,6 +12,8 @@ export const MobileMenu = ({
   currentUser,
   onClose,
   onOpenAuth,
+  cartCount = 0,
+  onOpenCart,
 }: MobileMenuProps) => {
   const handleLinkClick = () => {
     onClose();
@@ -18,6 +22,11 @@ export const MobileMenu = ({
   const handleAuthClick = (mode: 'login' | 'signup') => {
     onClose();
     onOpenAuth(mode);
+  };
+
+  const handleCartClick = () => {
+    onClose();
+    onOpenCart?.();
   };
 
   return (
@@ -55,6 +64,24 @@ export const MobileMenu = ({
       <a href="#help" onClick={handleLinkClick}>
         Support
       </a>
+
+      {onOpenCart && (
+        <button
+          className="btn"
+          onClick={handleCartClick}
+          style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            color: 'var(--paper)',
+            justifyContent: 'center',
+            margin: '14px 0 6px',
+            padding: '14px 20px',
+            fontWeight: 600,
+          }}
+        >
+          View Cart ({cartCount})
+        </button>
+      )}
 
       <div className="mb">
         {currentUser ? (

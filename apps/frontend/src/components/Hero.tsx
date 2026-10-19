@@ -62,33 +62,6 @@ export const Hero = () => {
     <header className="hero">
       <div className="hero-art" aria-hidden="true">
         <div className="orb" />
-        <span className="float" style={{ left: '4%', top: '2%' }}>
-          <img
-            src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=500&auto=format&fit=crop&q=80"
-            alt="Electric bike"
-            loading="lazy"
-          />
-        </span>
-        <span
-          className="float"
-          style={{ right: '2%', top: '30%', animationDelay: '-2s' }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=80"
-            alt="Sneakers"
-            loading="lazy"
-          />
-        </span>
-        <span
-          className="float"
-          style={{ left: '30%', bottom: 0, animationDelay: '-4s' }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500&auto=format&fit=crop&q=80"
-            alt="Perfume bottle"
-            loading="lazy"
-          />
-        </span>
       </div>
 
       <div className="wrap">

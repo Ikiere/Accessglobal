@@ -14,9 +14,12 @@ import { PromoDeal } from './components/PromoDeal';
 import { TrustSection } from './components/TrustSection';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
+import { CartDrawer, CartItem } from './components/CartDrawer';
+import { Product } from './components/ProductGrid';
 
 export function App() {
-  const [cartCount, setCartCount] = useState<number>(0);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [cartBump, setCartBump] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [currentCategory, setCurrentCategory] = useState<string>('All');
@@ -27,6 +30,8 @@ export function App() {
   const [toastVisible, setToastVisible] = useState<boolean>(false);
 
   const toastTimerRef = useRef<number | null>(null);
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -63,23 +68,59 @@ export function App() {
     );
   };
 
-  const handleAddToCart = (productName: string) => {
-    setCartCount((prev) => prev + 1);
+  const handleAddToCart = (product: Product) => {
+    setCart((prev) => {
+      const existingIdx = prev.findIndex((item) => item.id === product.id);
+      if (existingIdx > -1) {
+        const copy = [...prev];
+        copy[existingIdx] = {
+          ...copy[existingIdx],
+          quantity: copy[existingIdx].quantity + 1,
+        };
+        return copy;
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+
     setCartBump(false);
     // Trigger restart of CSS bump animation
     window.requestAnimationFrame(() => {
       setCartBump(true);
       setTimeout(() => setCartBump(false), 400);
     });
-    showToast(`${productName} added to cart`);
+    showToast(`${product.name} added to cart`);
+  };
+
+  const handleUpdateQuantity = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((item) => {
+          if (item.id === id) {
+            const nextQty = item.quantity + delta;
+            return nextQty > 0 ? { ...item, quantity: nextQty } : null;
+          }
+          return item;
+        })
+        .filter((item): item is CartItem => item !== null)
+    );
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setCart((prev) => {
+      const found = prev.find((item) => item.id === id);
+      if (found) {
+        showToast(`${found.name} removed from cart`);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+  };
+
+  const handleClearCart = () => {
+    setCart([]);
   };
 
   const handleCartClick = () => {
-    showToast(
-      cartCount > 0
-        ? `${cartCount} item${cartCount > 1 ? 's' : ''} in your cart`
-        : 'Your cart is empty. Add something from Trending.'
-    );
+    setIsCartOpen(true);
   };
 
   const handleSelectCategory = (category: string) => {
@@ -123,6 +164,8 @@ export function App() {
         currentUser={currentUser}
         onClose={() => setMobileMenuOpen(false)}
         onOpenAuth={handleOpenAuth}
+        cartCount={cartCount}
+        onOpenCart={handleCartClick}
       />
 
       <AuthModal
@@ -159,6 +202,16 @@ export function App() {
       <Footer
         onShowToast={showToast}
         onSelectCategory={handleSelectCategory}
+      />
+
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+        onShowToast={showToast}
       />
 
       <Toast message={toastMessage} isVisible={toastVisible} />
