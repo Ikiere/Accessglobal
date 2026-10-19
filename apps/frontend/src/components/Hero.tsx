@@ -1,77 +1,148 @@
-import React from 'react';
-import { ArrowRightIcon, ShieldCheckIcon, ZapIcon, LockIcon } from './Icons';
+import { useEffect, useRef, Fragment } from 'react';
 
-interface HeroProps {
-  onOpenModal: () => void;
-}
+const headlineLines = [
+  { text: 'Everything the', isSun: false },
+  { text: 'world makes.', isSun: true },
+  { text: 'One market.', isSun: false },
+];
 
-export const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
+export const Hero = () => {
+  const charRefs = useRef<HTMLSpanElement[]>([]);
+  charRefs.current = [];
+
+  const addToRefs = (el: HTMLSpanElement | null) => {
+    if (el && !charRefs.current.includes(el)) {
+      charRefs.current.push(el);
+    }
+  };
+
+  useEffect(() => {
+    let mx = -999;
+    let my = -999;
+    let tick = false;
+
+    const frame = () => {
+      tick = false;
+      const chars = charRefs.current;
+      for (let i = 0; i < chars.length; i++) {
+        const c = chars[i];
+        if (!c) continue;
+        const r = c.getBoundingClientRect();
+        const dx = mx - (r.left + r.width / 2);
+        const dy = my - (r.top + r.height / 2);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        const t = Math.max(0, 1 - d / 260);
+        c.style.fontWeight = String(Math.round(200 + t * 700));
+      }
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      mx = e.clientX;
+      my = e.clientY;
+      if (!tick) {
+        tick = true;
+        requestAnimationFrame(frame);
+      }
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+    };
+  }, []);
+
+  let globalCharIndex = 0;
+
   return (
-    <section className="hero-section">
-      <div className="container">
-        <div className="hero-content">
-          <div className="hero-badge">
-            <span className="hero-pulse"></span>
-            <span>Next-Gen Enterprise Liquidity & Access Protocol</span>
-          </div>
+    <header className="hero">
+      <div className="hero-art" aria-hidden="true">
+        <div className="orb" />
+        <span className="float" style={{ left: '4%', top: '2%' }}>
+          <img
+            src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=500&auto=format&fit=crop&q=80"
+            alt="Electric bike"
+            loading="lazy"
+          />
+        </span>
+        <span
+          className="float"
+          style={{ right: '2%', top: '30%', animationDelay: '-2s' }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=80"
+            alt="Sneakers"
+            loading="lazy"
+          />
+        </span>
+        <span
+          className="float"
+          style={{ left: '30%', bottom: 0, animationDelay: '-4s' }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500&auto=format&fit=crop&q=80"
+            alt="Perfume bottle"
+            loading="lazy"
+          />
+        </span>
+      </div>
 
-          <h1 className="hero-title">
-            Borderless Global Financial Access, Built for <span className="text-gradient">Scale</span>.
-          </h1>
-
-          <p className="hero-subtitle">
-            AccessGlobal unifies cross-border clearing, multi-currency corporate accounts, and automated treasury settlements into a high-throughput API and enterprise platform.
-          </p>
-
-          <div className="hero-actions">
-            <button onClick={onOpenModal} className="btn btn-primary btn-lg">
-              Open Enterprise Account <ArrowRightIcon size={18} />
-            </button>
-            <a href="#rates" className="btn btn-secondary btn-lg">
-              Estimate FX & Fees
-            </a>
-          </div>
-
-          <div className="hero-trust">
-            <div className="trust-item">
-              <ShieldCheckIcon size={16} className="text-brand" />
-              <span>SOC2 Type II Certified</span>
-            </div>
-            <div className="trust-item">
-              <LockIcon size={16} className="text-brand" />
-              <span>256-Bit Hardware Enclaves</span>
-            </div>
-            <div className="trust-item">
-              <ZapIcon size={16} className="text-brand" />
-              <span>Real-Time Settlement</span>
-            </div>
-          </div>
+      <div className="wrap">
+        <div className="pill">
+          <i />
+          Free shipping to 90+ countries
         </div>
 
-        {/* Live Metrics Grid */}
-        <div className="hero-metrics-grid">
-          <div className="metric-card glass-panel">
-            <span className="metric-number">$4.85B+</span>
-            <span className="metric-label">Annual Gross Volume</span>
-            <span className="metric-sub text-success">↑ 28.4% YoY</span>
-          </div>
-          <div className="metric-card glass-panel">
-            <span className="metric-number">142</span>
-            <span className="metric-label">Direct Jurisdictions</span>
-            <span className="metric-sub">50+ local currencies</span>
-          </div>
-          <div className="metric-card glass-panel">
-            <span className="metric-number">99.995%</span>
-            <span className="metric-label">System Availability</span>
-            <span className="metric-sub text-success">Zero downtime Q3</span>
-          </div>
-          <div className="metric-card glass-panel">
-            <span className="metric-number">&lt; 140ms</span>
-            <span className="metric-label">Clearing Latency</span>
-            <span className="metric-sub">Tier-1 liquidity hubs</span>
-          </div>
+        <h1 id="k" aria-label="Everything the world makes. One market.">
+          {headlineLines.map((line, lineIdx) => {
+            const words = line.text.split(' ');
+            return (
+              <span
+                key={lineIdx}
+                className={`hl ${line.isSun ? 'sun' : ''}`}
+                aria-hidden="true"
+              >
+                {words.map((word, wordIdx) => {
+                  return (
+                    <Fragment key={wordIdx}>
+                      <span className="w">
+                        {word.split('').map((ch, chIdx) => {
+                          const delay = 0.15 + globalCharIndex++ * 0.035;
+                          return (
+                            <span
+                              key={chIdx}
+                              ref={addToRefs}
+                              className="c"
+                              style={{ animationDelay: `${delay}s` }}
+                            >
+                              {ch}
+                            </span>
+                          );
+                        })}
+                      </span>
+                      {wordIdx < words.length - 1 && ' '}
+                    </Fragment>
+                  );
+                })}
+              </span>
+            );
+          })}
+        </h1>
+
+        <p className="sub">
+          E-bikes, fashion, footwear, home appliances and fragrances from
+          verified sellers, delivered to your door and covered by buyer
+          protection.
+        </p>
+
+        <div className="cta">
+          <a href="#products" className="btn p">
+            Shop trending
+          </a>
+          <a href="#shop" className="btn g">
+            Browse categories
+          </a>
         </div>
       </div>
-    </section>
+    </header>
   );
 };

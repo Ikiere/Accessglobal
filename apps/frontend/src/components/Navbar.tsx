@@ -1,91 +1,91 @@
-import React, { useState } from 'react';
-import { GlobeIcon, MenuIcon, XIcon, ExternalLinkIcon } from './Icons';
-
 interface NavbarProps {
-  onOpenModal: () => void;
+  cartCount: number;
+  cartBump: boolean;
+  currentUser: string | null;
+  onOpenAuth: (mode: 'login' | 'signup') => void;
+  onCartClick: () => void;
+  mobileMenuOpen: boolean;
+  onToggleMobileMenu: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenModal }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+export const Navbar = ({
+  cartCount,
+  cartBump,
+  currentUser,
+  onOpenAuth,
+  onCartClick,
+  mobileMenuOpen,
+  onToggleMobileMenu,
+}: NavbarProps) => {
   return (
-    <header className="navbar-wrapper">
-      <div className="container">
-        <nav className="navbar" aria-label="Main Navigation">
-          <a href="#" className="nav-brand">
-            <div className="brand-icon">
-              <GlobeIcon size={22} />
-            </div>
-            <span className="brand-text">Access<span className="brand-accent">Global</span></span>
-            <span className="badge">v2.4</span>
-          </a>
-
-          <div className="nav-links-desktop">
-            <a href="#rates" className="nav-link">Rates & FX</a>
-            <a href="#features" className="nav-link">Solutions</a>
-            <a href="#compliance" className="nav-link">Compliance</a>
-            <a href="#infrastructure" className="nav-link">Infrastructure</a>
-          </div>
-
-          <div className="nav-actions-desktop">
-            <a
-              href="http://localhost:3001"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-secondary btn-sm"
-              title="Open Admin Dashboard application"
-            >
-              Admin Dashboard <ExternalLinkIcon size={14} />
-            </a>
-            <button
-              onClick={onOpenModal}
-              className="btn btn-primary btn-sm"
-            >
-              Get Started
-            </button>
-          </div>
-
+    <nav>
+      <a href="#" className="logo">
+        AGM<b>.</b>
+      </a>
+      <ul>
+        <li>
+          <a href="#shop">Categories</a>
+        </li>
+        <li>
+          <a href="#products">Trending</a>
+        </li>
+        <li>
+          <a href="#deal">Deals</a>
+        </li>
+        <li>
+          <a href="#help">Support</a>
+        </li>
+      </ul>
+      <div className="nr">
+        {currentUser ? (
           <button
-            className="mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-expanded={mobileMenuOpen}
-            aria-label="Toggle navigation menu"
+            className="lnk"
+            id="lnk"
+            onClick={() => onOpenAuth('login')}
+            style={{ fontWeight: 600, color: 'var(--sun)' }}
           >
-            {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
+            Hi, {currentUser}
           </button>
-        </nav>
+        ) : (
+          <>
+            <button
+              className="lnk"
+              data-auth="login"
+              id="lnk"
+              onClick={() => onOpenAuth('login')}
+            >
+              Log in
+            </button>
+            <button
+              className="su"
+              data-auth="signup"
+              id="su"
+              onClick={() => onOpenAuth('signup')}
+            >
+              Sign up
+            </button>
+          </>
+        )}
+        <button
+          className={`cart ${cartBump ? 'bump' : ''}`}
+          id="cart"
+          aria-label="Open cart"
+          onClick={onCartClick}
+        >
+          Cart (<span id="count">{cartCount}</span>)
+        </button>
+        <button
+          className="burger"
+          id="burger"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mm"
+          onClick={onToggleMobileMenu}
+        >
+          <i />
+          <i />
+        </button>
       </div>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="mobile-drawer" role="dialog" aria-modal="true">
-          <div className="mobile-drawer-content">
-            <a href="#rates" onClick={() => setMobileMenuOpen(false)} className="mobile-link">Rates & FX</a>
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="mobile-link">Solutions</a>
-            <a href="#compliance" onClick={() => setMobileMenuOpen(false)} className="mobile-link">Compliance</a>
-            <a href="#infrastructure" onClick={() => setMobileMenuOpen(false)} className="mobile-link">Infrastructure</a>
-            <div className="mobile-actions">
-              <a
-                href="http://localhost:3001"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-secondary"
-              >
-                Admin Dashboard <ExternalLinkIcon size={16} />
-              </a>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenModal();
-                }}
-                className="btn btn-primary"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </header>
+    </nav>
   );
 };

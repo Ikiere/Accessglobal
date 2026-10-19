@@ -1,68 +1,84 @@
-import React from 'react';
-import { GlobeIcon, ExternalLinkIcon } from './Icons';
+import { useState } from 'react';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onShowToast: (message: string) => void;
+  onSelectCategory: (category: string) => void;
+}
+
+export const Footer = ({ onShowToast, onSelectCategory }: FooterProps) => {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    onShowToast('You are in. Check your inbox for your 10% code.');
+    setEmail('');
+  };
+
+  const handleCategoryClick = (category: string) => {
+    onSelectCategory(category);
+    const productsSection = document.getElementById('products');
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <footer className="footer-section">
-      <div className="container">
-        <div className="footer-grid">
-          <div className="footer-brand-col">
-            <div className="footer-brand">
-              <div className="brand-icon">
-                <GlobeIcon size={20} />
-              </div>
-              <span className="brand-text">Access<span className="brand-accent">Global</span></span>
-            </div>
-            <p className="footer-desc">
-              High-throughput cross-border financial and multi-currency operations infrastructure for forward-thinking enterprises.
+    <footer>
+      <div className="wrap">
+        <div className="fg">
+          <div>
+            <h5>Get 10% off your first order</h5>
+            <p style={{ color: '#55587e' }}>
+              Join for early access to drops and deals.
             </p>
-            <div className="system-status">
-              <span className="status-dot"></span>
-              <span>All Global Rails Operational (Tier-1 Uptime)</span>
-            </div>
+            <form className="nl" id="nl" onSubmit={handleSubmit}>
+              <input
+                type="email"
+                placeholder="you@email.com"
+                required
+                aria-label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button type="submit">Join</button>
+            </form>
           </div>
-
-          <div className="footer-col">
-            <h4 className="footer-heading">Solutions</h4>
-            <ul className="footer-links">
-              <li><a href="#rates">Live FX Calculator</a></li>
-              <li><a href="#features">Virtual Accounts</a></li>
-              <li><a href="#features">Treasury Clearing</a></li>
-              <li><a href="#features">Developer API</a></li>
+          <div>
+            <h5>Shop</h5>
+            <ul>
+              <li onClick={() => handleCategoryClick('E-Bikes')}>E-Bikes</li>
+              <li onClick={() => handleCategoryClick('Clothing')}>Clothing</li>
+              <li onClick={() => handleCategoryClick('Shoes')}>Shoes</li>
+              <li onClick={() => handleCategoryClick('Appliances')}>Appliances</li>
+              <li onClick={() => handleCategoryClick('Perfumes')}>Perfumes</li>
             </ul>
           </div>
-
-          <div className="footer-col">
-            <h4 className="footer-heading">Apps & Portals</h4>
-            <ul className="footer-links">
-              <li><a href="#">Public Web Portal (Active)</a></li>
-              <li>
-                <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer">
-                  Admin Dashboard <ExternalLinkIcon size={12} />
-                </a>
-              </li>
-              <li><a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel Deployment Ready</a></li>
+          <div>
+            <h5>Company</h5>
+            <ul>
+              <li>About AGM</li>
+              <li>Sell with us</li>
+              <li>Careers</li>
+              <li>Press</li>
             </ul>
           </div>
-
-          <div className="footer-col">
-            <h4 className="footer-heading">Compliance</h4>
-            <ul className="footer-links">
-              <li><a href="#">Security & Encryption</a></li>
-              <li><a href="#">AML / KYC Guidelines</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
+          <div>
+            <h5>Support</h5>
+            <ul>
+              <li>Track order</li>
+              <li>Returns</li>
+              <li>Shipping</li>
+              <li>Contact</li>
             </ul>
           </div>
         </div>
-
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} AccessGlobal Technologies Inc. All rights reserved.</p>
-          <div className="monorepo-tag">
-            <span>AccessGlobal Monorepo</span>
-            <span className="separator">•</span>
-            <span>Frontend App (`apps/frontend`)</span>
-          </div>
+        <div className="mega" aria-hidden="true">
+          AGM
+        </div>
+        <div className="copy">
+          <span>© 2026 Access Global Market. All rights reserved.</span>
+          <span>Privacy · Terms · Cookies</span>
         </div>
       </div>
     </footer>
