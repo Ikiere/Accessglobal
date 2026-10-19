@@ -17,6 +17,11 @@ export const Hero = () => {
   };
 
   useEffect(() => {
+    // On coarse touch devices (like mobile phones), avoid pointermove computation during scrolling
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+      return;
+    }
+
     let mx = -999;
     let my = -999;
     let tick = false;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface Product {
   id: string;
@@ -131,6 +131,13 @@ export const ProductGrid = ({
   const filteredProducts = productsData.filter(
     (p) => currentCategory === 'All' || p.category === currentCategory
   );
+
+  useEffect(() => {
+    const activeTab = document.querySelector<HTMLElement>('.tab[aria-pressed="true"]');
+    if (activeTab && window.innerWidth <= 640) {
+      activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [currentCategory]);
 
   const handleAdd = (product: Product) => {
     setAddedIds((prev) => ({ ...prev, [product.id]: true }));

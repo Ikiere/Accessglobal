@@ -21,7 +21,28 @@ export const MobileMenu = ({
   };
 
   return (
-    <div className={`mm ${isOpen ? 'on' : ''}`} id="mm">
+    <div
+      className={`mm ${isOpen ? 'on' : ''}`}
+      id="mm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+    >
+      <button
+        className="x"
+        aria-label="Close menu"
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: 'max(16px, env(safe-area-inset-top, 16px))',
+          right: '18px',
+          width: '42px',
+          height: '42px',
+        }}
+      >
+        ✕
+      </button>
+
       <a href="#shop" onClick={handleLinkClick}>
         Categories
       </a>
@@ -34,14 +55,15 @@ export const MobileMenu = ({
       <a href="#help" onClick={handleLinkClick}>
         Support
       </a>
+
       <div className="mb">
         {currentUser ? (
           <div
             style={{
               color: 'var(--sun)',
               fontWeight: 600,
-              padding: '10px 0',
-              fontSize: '1.2rem',
+              padding: '12px 0',
+              fontSize: '1.15rem',
             }}
           >
             Logged in as {currentUser}
