@@ -190,7 +190,14 @@ export const ProductGrid = ({
                   data-n={p.name}
                   onClick={() => handleAdd(p)}
                 >
-                  {isAdded ? 'Added' : 'Add to cart'}
+                  {isAdded ? (
+                    'Added'
+                  ) : (
+                    <>
+                      <span className="add-txt-full">Add to cart</span>
+                      <span className="add-txt-short">+ Add</span>
+                    </>
+                  )}
                 </button>
               </div>
             </article>

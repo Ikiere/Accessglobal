@@ -676,6 +676,14 @@ h2 em {
   color: var(--ink);
 }
 
+.add-txt-full {
+  display: inline;
+}
+
+.add-txt-short {
+  display: none;
+}
+
 /* stats */
 .stats {
   display: grid;
@@ -1407,6 +1415,66 @@ footer li:hover {
     font-size: 0.9rem;
   }
 
+  /* 2 in a row on mobile */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    border-radius: 20px;
+    padding: 10px 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .img {
+    height: 150px;
+    border-radius: 14px;
+  }
+
+  .tag {
+    top: 8px;
+    left: 8px;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+  }
+
+  .card h4 {
+    font-size: 0.88rem;
+    line-height: 1.25;
+    margin: 9px 2px 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.2em;
+    letter-spacing: -0.02em;
+  }
+
+  .card small {
+    font-size: 0.72rem;
+    margin-left: 2px;
+  }
+
+  .row {
+    margin: 9px 2px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pr {
+    font-size: 0.98rem;
+  }
+
+  .add {
+    padding: 7px 11px;
+    font-size: 0.78rem;
+  }
+
   .stats {
     margin-top: 70px;
     padding: 34px 0;
@@ -1579,36 +1647,70 @@ footer li:hover {
   }
 
   .grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
   .card {
-    border-radius: 22px;
-    padding: 12px 12px 18px;
+    border-radius: 18px;
+    padding: 8px 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .img {
-    height: 200px;
-    border-radius: 14px;
+    height: 135px;
+    border-radius: 12px;
+  }
+
+  .tag {
+    top: 6px;
+    left: 6px;
+    font-size: 0.64rem;
+    padding: 2px 6px;
+    border-radius: 6px;
   }
 
   .card h4 {
-    font-size: 1rem;
-    margin: 12px 4px 2px;
+    font-size: 0.82rem;
+    line-height: 1.22;
+    margin: 8px 1px 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.15em;
+  }
+
+  .card small {
+    font-size: 0.68rem;
+    margin-left: 1px;
   }
 
   .row {
-    margin: 12px 4px 0;
+    margin: 8px 1px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
   }
 
   .pr {
-    font-size: 1.15rem;
+    font-size: 0.92rem;
   }
 
   .add {
-    padding: 9px 15px;
-    font-size: 0.85rem;
+    padding: 6px 9px;
+    font-size: 0.74rem;
+  }
+
+  .add-txt-full {
+    display: none;
+  }
+
+  .add-txt-short {
+    display: inline;
   }
 
   .stats {
@@ -1816,6 +1918,48 @@ footer li:hover {
 
   .tile h3 {
     font-size: 1.2rem;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .card {
+    padding: 7px 7px 11px;
+    border-radius: 16px;
+  }
+
+  .img {
+    height: 118px;
+    border-radius: 10px;
+  }
+
+  .tag {
+    top: 5px;
+    left: 5px;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    border-radius: 5px;
+  }
+
+  .card h4 {
+    font-size: 0.76rem;
+    line-height: 1.2;
+    min-height: 2.1em;
+  }
+
+  .card small {
+    font-size: 0.64rem;
+  }
+
+  .pr {
+    font-size: 0.84rem;
+  }
+
+  .add {
+    padding: 5px 8px;
+    font-size: 0.7rem;
   }
 
   .stats b {
