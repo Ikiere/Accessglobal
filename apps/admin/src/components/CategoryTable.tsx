@@ -93,7 +93,7 @@ const CategoryTable: React.FC = () => {
 
                 <td className="py-4 px-4">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300">
-                    {item.productCount ?? 12} products
+                    {(item.productsNumber ?? 0)} products
                   </span>
                 </td>
 
