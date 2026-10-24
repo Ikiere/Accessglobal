@@ -1,62 +1,74 @@
-import React from 'react';
-import { SearchIcon, BellIcon } from './Icons';
+// *********************
+// Role of the component: The header component
+// Name of the component: Header.tsx
+// Developer: Aleksandar Kuzmanovic
+// Version: 1.0
+// Component call: <Header />
+// Input parameters: No input parameters
+// Output: The header component
+// *********************
 
-interface HeaderProps {
-  title: string;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onNotificationClick: () => void;
-  notificationCount: number;
-}
+import { FaReact } from "react-icons/fa6";
+import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
+import { HiOutlineBell } from "react-icons/hi";
+import { HiOutlineMenu } from "react-icons/hi";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { setSidebar } from "../features/dashboard/dashboardSlice";
+import { Link } from "react-router-dom";
+import SearchInput from "./SearchInput";
+import { toggleDarkMode } from "../features/darkMode/darkModeSlice";
 
-export const Header: React.FC<HeaderProps> = ({
-  title,
-  searchQuery,
-  onSearchChange,
-  onNotificationClick,
-  notificationCount,
-}) => {
+const Header = () => {
+  const dispatch = useAppDispatch();
+  const { darkMode } = useAppSelector((state) => state.darkMode);
+
   return (
-    <header className="admin-header">
-      <div className="header-left">
-        <h2 className="header-title">{title}</h2>
-        <span className="header-crumb">AccessGlobal Admin Engine • Production US-East</span>
-      </div>
-
-      <div className="header-right">
-        <div className="header-search">
-          <SearchIcon size={16} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search accounts, transactions, corridors..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="search-input"
-            aria-label="Global search"
-          />
-          <kbd className="search-kbd">⌘K</kbd>
-        </div>
-
-        <button
-          onClick={onNotificationClick}
-          className="header-icon-btn"
-          aria-label={`View ${notificationCount} notifications`}
-          title="System notifications"
-        >
-          <BellIcon size={18} />
-          {notificationCount > 0 && <span className="notification-dot">{notificationCount}</span>}
-        </button>
-
-        <div className="admin-profile">
-          <div className="profile-avatar">
-            <span>SV</span>
-          </div>
-          <div className="profile-info">
-            <span className="profile-name">Sarah Vance</span>
-            <span className="profile-role">Super Administrator</span>
-          </div>
+    <header className="dark:bg-blackPrimary bg-whiteSecondary relative">
+      <div className="flex justify-between items-center px-9 py-5 max-xl:flex-col max-xl:gap-y-7 max-[400px]:px-4">
+        <HiOutlineMenu
+          className="text-2xl dark:text-whiteSecondary text-blackPrimary absolute bottom-7 left-5 xl:hidden max-sm:static max-sm:order-1 cursor-pointer"
+          onClick={() => dispatch(setSidebar())}
+        />
+        <Link to="/">
+          <FaReact className="text-4xl dark:text-whiteSecondary text-blackPrimary hover:rotate-180 hover:duration-1000 hover:ease-in-out cursor-pointer" />
+        </Link>
+        <SearchInput />
+        <div className="flex gap-4 items-center max-xl:justify-center">
+          <span className="dark:text-whiteSecondary text-blackPrimary">EN</span>
+          {darkMode ? (
+            <HiOutlineSun
+              onClick={() => dispatch(toggleDarkMode())}
+              className="text-xl dark:text-whiteSecondary text-blackPrimary cursor-pointer"
+            />
+          ) : (
+            <HiOutlineMoon
+              onClick={() => dispatch(toggleDarkMode())}
+              className="text-xl dark:text-whiteSecondary text-blackPrimary cursor-pointer"
+            />
+          )}
+          <Link to="/notifications">
+            <HiOutlineBell className="text-xl dark:text-whiteSecondary text-blackPrimary" />
+          </Link>
+          <Link to="/profile">
+            <div className="flex gap-2 items-center">
+              <img
+                src="/src/assets/profile.jpg"
+                alt="profile"
+                className="rounded-full w-10 h-10"
+              />
+              <div className="flex flex-col">
+                <p className="dark:text-whiteSecondary text-blackPrimary text-base max-xl:text-sm">
+                  Sherwood Gruninger
+                </p>
+                <p className="dark:text-whiteSecondary text-blackPrimary text-sm max-xl:text-xs">
+                  Web Developer
+                </p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </header>
   );
 };
+export default Header;

@@ -1,11 +1,10 @@
-# AccessGlobal Monorepo: Vercel Deployment & Setup Guide
+# AccessGlobal Monorepo: Full-Stack Setup & Deployment Guide
 
-This repository is structured as a production-grade monorepo containing two independent, fully featured React applications configured for seamless deployment on [Vercel](https://vercel.com):
+This repository is structured as a production-grade monorepo containing two React applications and a high-security Node/Express API Gateway with safe Supabase integration:
 
-1. **`apps/frontend`**: Public enterprise portal with live FX calculator, interactive inquiry modals, and platform feature showcases.
-2. **`apps/admin`**: Dedicated operations control console with real-time KPI metrics, interactive SVG analytics charts, tenant management with status toggles, and system security controls.
-
-Both applications use **React 18**, **TypeScript**, and **Vite**, with pre-configured `vercel.json` rules for clean SPA routing (preventing 404 errors on page reloads).
+1. **`apps/frontend`**: Public enterprise eCommerce portal with dynamic catalog, cart drawer, and interactive inquiry modals.
+2. **`apps/admin`**: Full-featured eCommerce operations and control dashboard (Chart.js, Recharts, Product/Order/User/Review tables, and Safe Supabase Database management).
+3. **`backend`**: Node.js + Express + TypeScript API gateway with military-grade AES-256-GCM vault for Supabase credentials, JWT authentication, and dual-mode resilient storage.
 
 ---
 
@@ -16,126 +15,107 @@ Accessglobal/
 ├── .gitignore
 ├── package.json               # Root monorepo orchestrator (npm workspaces)
 ├── VERCEL_DEPLOYMENT.md       # This guide
+├── backend/                   # Secure Backend & Supabase Gateway (Port 5000)
+│   ├── src/
+│   │   ├── config/env.ts      # Master vault key and CORS setup
+│   │   ├── controllers/       # Products, Categories, Orders, Users, Supabase, Auth
+│   │   ├── data/
+│   │   │   ├── initialSeed.ts # Seed catalog, users, orders
+│   │   │   └── supabase-schema.sql # Complete DDL with RLS & indexes
+│   │   ├── middleware/        # JWT guard, error handler, rate limiter
+│   │   ├── routes/            # /api routes
+│   │   ├── services/
+│   │   │   ├── vault.service.ts      # AES-256-GCM credential vault
+│   │   │   ├── supabase.service.ts   # Safe Supabase client manager
+│   │   │   └── repository.service.ts # Dual storage (Supabase / local fallback)
+│   │   └── index.ts           # Server entrypoint
+│   ├── .env.example
+│   ├── package.json
+│   └── tsconfig.json
 ├── apps/
-│   ├── frontend/              # Public Web Portal (Vercel Project 1)
-│   │   ├── vercel.json        # SPA rewrite rules
+│   ├── frontend/              # Customer Storefront (Vercel Project 1 - Port 3000)
+│   │   ├── vercel.json
 │   │   ├── vite.config.ts
 │   │   ├── package.json
 │   │   └── src/
-│   └── admin/                 # Admin Dashboard (Vercel Project 2)
-│       ├── vercel.json        # SPA rewrite rules
-│       ├── vite.config.ts
+│   └── admin/                 # Admin Dashboard (Vercel Project 2 - Port 3001)
+│       ├── vercel.json
+│       ├── vite.config.ts     # Configured with proxy to backend /api
 │       ├── package.json
 │       └── src/
 ```
 
 ---
 
-## 2. Deploying to Vercel (Step-by-Step)
+## 2. Local Development
 
-Because this repository houses both the frontend and admin dashboard in a clean monorepo, you can deploy both as separate, independently scaled projects from the **same GitHub repository** on Vercel.
-
-### Step 2.1: Deploy Project 1 — Frontend Portal
-
-1. Log into your [Vercel Dashboard](https://vercel.com/dashboard).
-2. Click **"Add New..."** -> **"Project"**.
-3. Import your GitHub repository: `Ikiere/Accessglobal`.
-4. In the **Configure Project** screen:
-   - **Project Name**: `accessglobal-frontend` (or your preferred name)
-   - **Framework Preset**: `Vite`
-   - **Root Directory**: Click **Edit** and choose `apps/frontend` (⚠️ **Crucial**)
-   - Leave the build settings as default:
-     - **Build Command**: `npm run build`
-     - **Output Directory**: `dist`
-     - **Install Command**: `npm install`
-5. Click **"Deploy"**.
-6. Vercel will install dependencies, compile the frontend, and assign a production URL (e.g. `https://accessglobal-frontend.vercel.app`).
-
----
-
-### Step 2.2: Deploy Project 2 — Admin Dashboard
-
-1. In your Vercel Dashboard, click **"Add New..."** -> **"Project"**.
-2. Select the **same** GitHub repository (`Ikiere/Accessglobal`).
-3. In the **Configure Project** screen:
-   - **Project Name**: `accessglobal-admin`
-   - **Framework Preset**: `Vite`
-   - **Root Directory**: Click **Edit** and choose `apps/admin` (⚠️ **Crucial**)
-   - Leave the build settings as default:
-     - **Build Command**: `npm run build`
-     - **Output Directory**: `dist`
-     - **Install Command**: `npm install`
-4. Click **"Deploy"**.
-5. Vercel will build the admin console and assign its own production URL (e.g. `https://accessglobal-admin.vercel.app`).
-
----
-
-## 3. Local Development & Workspaces
-
-You can run, test, and build either app individually or both simultaneously from the root directory:
+You can run any service independently or in parallel:
 
 ### Start Development Servers
 
-- Run Frontend only (runs on `http://localhost:3000`):
+- **Backend API Server** (runs on `http://localhost:5000`):
   ```bash
-  npm run dev:frontend
+  npm run dev:backend
   ```
 
-- Run Admin Dashboard only (runs on `http://localhost:3001`):
+- **Admin Dashboard** (runs on `http://localhost:3001` with `/api` proxy):
   ```bash
   npm run dev:admin
   ```
 
-### Build for Production
-
-- Build Frontend:
+- **Frontend Portal** (runs on `http://localhost:3000`):
   ```bash
-  npm run build:frontend
+  npm run dev:frontend
   ```
 
-- Build Admin Dashboard:
-  ```bash
-  npm run build:admin
-  ```
+### Build & Typecheck All Services
 
-- Build All Apps:
+- **Build everything**:
   ```bash
   npm run build
   ```
 
-- Typecheck All Apps:
+- **Build individually**:
   ```bash
-  npm run typecheck
+  npm run build:backend
+  npm run build:admin
+  npm run build:frontend
   ```
 
 ---
 
-## 4. SPA Routing Configuration (`vercel.json`)
+## 3. Safe Supabase Integration (Zero Public Key Leakage)
 
-Both `apps/frontend/vercel.json` and `apps/admin/vercel.json` include pre-configured SPA routing rewrites:
-
-```json
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
-
-This guarantees that sub-routes, browser refreshes, and deep links never trigger Vercel 404 errors.
+### Why this is safe:
+- **Never exposed in the browser**: The Supabase `service_role` secret key and raw connection strings are never sent to or stored in client-side code.
+- **Server Vault (AES-256-GCM)**: If users input Supabase credentials via the Admin UI, the backend encrypts them server-side using AES-256-GCM before saving them to disk (`backend/data/supabase_vault.enc`).
+- **Seamless Fallback**: If Supabase credentials have not been configured yet, the backend automatically uses a local resilient seeded store so that the dashboard remains completely functional.
+- **Automated Schema Initialization**: Navigate to **Supabase DB** in the admin sidebar to test your connection and copy the automated SQL script to run in your Supabase SQL Editor.
 
 ---
 
-## 5. Environment Variables (Optional)
+## 4. Default Admin Login Credentials
 
-If connecting to external backend APIs or Supabase/Firebase in the future, define variables in each project's Vercel Settings -> **Environment Variables**:
+- **Email**: `admin@accessglobal.io`
+- **Password**: `AdminPass123!`
 
-- For Frontend: prefix with `VITE_` (e.g., `VITE_API_BASE_URL`)
-- For Admin: prefix with `VITE_` (e.g., `VITE_ADMIN_API_KEY`)
+---
+
+## 5. Deployment Guide
+
+### Deploying Frontend to Vercel:
+1. In Vercel, import repo `Ikiere/Accessglobal`.
+2. Root Directory: `apps/frontend`.
+3. Framework: `Vite`. Build: `npm run build`.
+
+### Deploying Admin Dashboard to Vercel:
+1. In Vercel, import repo `Ikiere/Accessglobal`.
+2. Root Directory: `apps/admin`.
+3. Framework: `Vite`. Build: `npm run build`.
+4. Set Environment Variable: `VITE_API_BASE_URL` pointing to your deployed backend URL.
+
+### Deploying Backend:
+- Can be deployed to Render, Railway, Fly.io, or AWS ECS as a standard Node.js service using:
+  - Build command: `npm run build:backend`
+  - Start command: `node dist/index.js`
+  - Environment variables: `PORT=5000`, `NODE_ENV=production`, `ENCRYPTION_MASTER_KEY=<32-byte-hex>`, `JWT_SECRET=<secret>`.

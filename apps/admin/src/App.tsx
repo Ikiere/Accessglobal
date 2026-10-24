@@ -1,105 +1,134 @@
-import { useState } from 'react';
-import './styles/index.css';
-import './App.css';
-import { Sidebar, AdminTab } from './components/Sidebar';
-import { Header } from './components/Header';
-import { MetricsCards } from './components/MetricsCards';
-import { AnalyticsChart } from './components/AnalyticsChart';
-import { TenantTable } from './components/TenantTable';
-import { SystemSettings } from './components/SystemSettings';
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import {
-  INITIAL_METRICS,
-  INITIAL_DAILY_VOLUME,
-  INITIAL_TENANTS,
-  INITIAL_SYSTEM_CONFIG,
-} from './data/mockData';
-import { TenantStatus, SystemConfig } from './types';
+  Categories,
+  CreateCategory,
+  CreateOrder,
+  CreateProduct,
+  CreateReview,
+  CreateUser,
+  EditCategory,
+  EditOrder,
+  EditProduct,
+  EditReview,
+  EditUser,
+  HelpDesk,
+  HomeLayout,
+  Landing,
+  LandingV2,
+  Login,
+  Notifications,
+  Orders,
+  Products,
+  Profile,
+  Register,
+  Reviews,
+  Users,
+  SupabaseSettings,
+} from "./pages";
 
-export function App() {
-  const [currentTab, setCurrentTab] = useState<AdminTab>('overview');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [tenants, setTenants] = useState(INITIAL_TENANTS);
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>(INITIAL_SYSTEM_CONFIG);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
+  },
+  {
+    path: "/",
+    element: <HomeLayout />,
+    children: [
+      {
+        index: true,
+        element: <Landing />,
+      },
+      {
+        path: "/landing-v2",
+        element: <LandingV2 />,
+      },
+      {
+        path: "/products",
+        element: <Products />,
+      },
+      {
+        path: "/products/create-product",
+        element: <CreateProduct />,
+      },
+      {
+        path: "/products/:id",
+        element: <EditProduct />,
+      },
+      {
+        path: "/categories",
+        element: <Categories />,
+      },
+      {
+        path: "/categories/create-category",
+        element: <CreateCategory />,
+      },
+      {
+        path: "/categories/:id",
+        element: <EditCategory />,
+      },
+      {
+        path: "/orders",
+        element: <Orders />,
+      },
+      {
+        path: "/orders/create-order",
+        element: <CreateOrder />,
+      },
+      {
+        path: "/orders/1",
+        element: <EditOrder />,
+      },
+      {
+        path: "/reviews",
+        element: <Reviews />,
+      },
+      {
+        path: "/reviews/:id",
+        element: <EditReview />,
+      },
+      {
+        path: "/reviews/create-review",
+        element: <CreateReview />,
+      },
+      {
+        path: "/users",
+        element: <Users />,
+      },
+      {
+        path: "/users/:id",
+        element: <EditUser />,
+      },
+      {
+        path: "/users/create-user",
+        element: <CreateUser />,
+      },
+      {
+        path: "/help-desk",
+        element: <HelpDesk />,
+      },
+      {
+        path: "/notifications",
+        element: <Notifications />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/supabase-settings",
+        element: <SupabaseSettings />,
+      },
+    ],
+  },
+]);
 
-  const handleUpdateTenantStatus = (id: string, newStatus: TenantStatus) => {
-    setTenants(prev =>
-      prev.map(t => (t.id === id ? { ...t, status: newStatus } : t))
-    );
-  };
-
-  const getTabTitle = () => {
-    switch (currentTab) {
-      case 'overview':
-        return 'Executive Overview & Liquidity Operations';
-      case 'tenants':
-        return 'Institutional Tenants & Accounts';
-      case 'settings':
-        return 'System Configuration & Security Controls';
-    }
-  };
-
-  return (
-    <div className="admin-shell">
-      <Sidebar
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        tenantCount={tenants.length}
-      />
-
-      <div className="admin-main">
-        <Header
-          title={getTabTitle()}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          notificationCount={2}
-          onNotificationClick={() => setNotificationsOpen(!notificationsOpen)}
-        />
-
-        <main className="admin-content">
-          {notificationsOpen && (
-            <div className="notification-banner">
-              <span>
-                <strong>System Notice:</strong> 2 OFAC screening approvals pending review for Vanguard Media Group.
-              </span>
-              <button
-                onClick={() => setNotificationsOpen(false)}
-                className="btn-icon"
-                title="Dismiss"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {currentTab === 'overview' && (
-            <>
-              <MetricsCards metrics={INITIAL_METRICS} />
-              <AnalyticsChart data={INITIAL_DAILY_VOLUME} />
-              <TenantTable
-                tenants={tenants}
-                onUpdateTenantStatus={handleUpdateTenantStatus}
-              />
-            </>
-          )}
-
-          {currentTab === 'tenants' && (
-            <TenantTable
-              tenants={tenants}
-              onUpdateTenantStatus={handleUpdateTenantStatus}
-            />
-          )}
-
-          {currentTab === 'settings' && (
-            <SystemSettings
-              initialConfig={systemConfig}
-              onSaveConfig={(cfg) => setSystemConfig(cfg)}
-            />
-          )}
-        </main>
-      </div>
-    </div>
-  );
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -32,6 +32,7 @@ lerna-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-.DS_Store
-Thumbs.db
+# Nested repos & sensitive vaults
+scratch_repo/
+*.enc
+data/*.enc

@@ -1,77 +1,184 @@
-import React from 'react';
-import { DashboardIcon, UsersIcon, SettingsIcon, ExternalLinkIcon } from './Icons';
+// *********************
+// Role of the component: Sidebar component that displays the sidebar navigation
+// Name of the component: Sidebar.tsx
+// Developer: Aleksandar Kuzmanovic & AccessGlobal
+// Version: 2.0
+// *********************
 
-export type AdminTab = 'overview' | 'tenants' | 'settings';
+import { HiLogin, HiOutlineHome, HiUserGroup } from "react-icons/hi";
+import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
+import { HiOutlineTag } from "react-icons/hi";
+import { HiOutlineTruck } from "react-icons/hi";
+import { HiOutlineStar } from "react-icons/hi";
+import { HiOutlineInformationCircle } from "react-icons/hi";
+import { HiOutlineDatabase } from "react-icons/hi";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { HiOutlineX } from "react-icons/hi";
+import { setSidebar } from "../features/dashboard/dashboardSlice";
+import { HiOutlineUser } from "react-icons/hi";
+import { NavLink } from "react-router-dom";
+import { useState } from "react";
 
-interface SidebarProps {
-  currentTab: AdminTab;
-  onSelectTab: (tab: AdminTab) => void;
-  tenantCount: number;
-}
+const Sidebar = () => {
+  const [isLandingOpen, setIsLandingOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const { isSidebarOpen } = useAppSelector((state) => state.dashboard);
+  const dispatch = useAppDispatch();
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab, tenantCount }) => {
+  const sidebarClass: string = isSidebarOpen
+    ? "sidebar-open"
+    : "sidebar-closed";
+
+  const navActiveClass: string =
+    "block dark:bg-whiteSecondary flex items-center self-stretch gap-4 py-4 px-6 cursor-pointer max-xl:py-3 dark:text-blackPrimary bg-white text-blackPrimary";
+  const navInactiveClass: string =
+    "block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary";
+
   return (
-    <aside className="admin-sidebar" aria-label="Admin Navigation">
-      <div className="sidebar-brand">
-        <div className="brand-logo-admin">
-          <span className="logo-dot"></span>
-        </div>
+    <div className="relative">
+      <div
+        className={`w-72 h-[100vh] dark:bg-blackPrimary bg-whiteSecondary pt-6 xl:sticky xl:top-0 xl:z-10 max-xl:fixed max-xl:top-0 max-xl:z-10 xl:translate-x-0 ${sidebarClass}`}
+      >
+        <HiOutlineX
+          className="dark:text-whiteSecondary text-blackPrimary text-2xl ml-auto mb-2 mr-2 cursor-pointer xl:py-3"
+          onClick={() => dispatch(setSidebar())}
+        />
         <div>
-          <h1 className="brand-title-admin">Access<span className="brand-highlight">Global</span></h1>
-          <span className="brand-sub-admin">Operations Console</span>
-        </div>
-      </div>
-
-      <nav className="sidebar-nav">
-        <button
-          onClick={() => onSelectTab('overview')}
-          className={`nav-item ${currentTab === 'overview' ? 'nav-item-active' : ''}`}
-          aria-current={currentTab === 'overview' ? 'page' : undefined}
-        >
-          <DashboardIcon size={18} />
-          <span>Overview & KPIs</span>
-        </button>
-
-        <button
-          onClick={() => onSelectTab('tenants')}
-          className={`nav-item ${currentTab === 'tenants' ? 'nav-item-active' : ''}`}
-          aria-current={currentTab === 'tenants' ? 'page' : undefined}
-        >
-          <UsersIcon size={18} />
-          <span>Tenants & Accounts</span>
-          <span className="nav-badge">{tenantCount}</span>
-        </button>
-
-        <button
-          onClick={() => onSelectTab('settings')}
-          className={`nav-item ${currentTab === 'settings' ? 'nav-item-active' : ''}`}
-          aria-current={currentTab === 'settings' ? 'page' : undefined}
-        >
-          <SettingsIcon size={18} />
-          <span>System Settings</span>
-        </button>
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="health-box">
-          <span className="status-ping"></span>
-          <div className="health-text">
-            <span className="health-status">Vercel Deployment Ready</span>
-            <span className="health-detail">apps/admin • Root Dir</span>
+          <div
+            onClick={() => setIsLandingOpen(() => !isLandingOpen)}
+            className="block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary"
+          >
+            <HiOutlineHome className="text-xl" />
+            <span className="text-lg">Landing pages</span>
           </div>
+          {isLandingOpen && (
+            <div>
+              <NavLink
+                to="/"
+                className={(isActiveObj) =>
+                  isActiveObj.isActive ? navActiveClass : navInactiveClass
+                }
+              >
+                <HiOutlineHome className="text-xl" />
+                <span className="text-lg">Overview v1</span>
+              </NavLink>
+
+              <NavLink
+                to="/landing-v2"
+                className={(isActiveObj) =>
+                  isActiveObj.isActive ? navActiveClass : navInactiveClass
+                }
+              >
+                <HiOutlineHome className="text-xl" />
+                <span className="text-lg">Overview v2</span>
+              </NavLink>
+            </div>
+          )}
+
+          <NavLink
+            to="/products"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineDevicePhoneMobile className="text-xl" />
+            <span className="text-lg">Products</span>
+          </NavLink>
+          <NavLink
+            to="/categories"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineTag className="text-xl" />
+            <span className="text-lg">Categories</span>
+          </NavLink>
+          <NavLink
+            to="/orders"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineTruck className="text-xl" />
+            <span className="text-lg">Orders</span>
+          </NavLink>
+          <NavLink
+            to="/users"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineUser className="text-xl" />
+            <span className="text-lg">Users</span>
+          </NavLink>
+          <NavLink
+            to="/reviews"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineStar className="text-xl" />
+            <span className="text-lg">Reviews</span>
+          </NavLink>
+
+          {/* Supabase Safe Database Settings */}
+          <NavLink
+            to="/supabase-settings"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineDatabase className="text-xl text-emerald-400" />
+            <span className="text-lg flex items-center justify-between w-full">
+              <span>Supabase DB</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider">Safe</span>
+            </span>
+          </NavLink>
+
+          <div
+            onClick={() => setIsAuthOpen(() => !isAuthOpen)}
+            className="block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary"
+          >
+            <HiUserGroup className="text-xl" />
+            <span className="text-lg">Auth</span>
+          </div>
+          {isAuthOpen && (
+            <div>
+              <NavLink
+                to="/login"
+                className={(isActiveObj) =>
+                  isActiveObj.isActive ? navActiveClass : navInactiveClass
+                }
+              >
+                <HiLogin className="text-xl" />
+                <span className="text-lg">Login</span>
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={(isActiveObj) =>
+                  isActiveObj.isActive ? navActiveClass : navInactiveClass
+                }
+              >
+                <HiUserGroup className="text-xl" />
+                <span className="text-lg">Register</span>
+              </NavLink>
+            </div>
+          )}
         </div>
 
-        <a
-          href="http://localhost:3000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="portal-link-btn"
-          title="Open AccessGlobal Public Frontend"
-        >
-          <span>Open Public Portal</span>
-          <ExternalLinkIcon size={14} />
-        </a>
+        <div className="absolute bottom-0 border-1 border-t dark:border-blackSecondary border-blackSecondary w-full">
+          <NavLink
+            to="/help-desk"
+            className={(isActiveObj) =>
+              isActiveObj.isActive ? navActiveClass : navInactiveClass
+            }
+          >
+            <HiOutlineInformationCircle className="text-xl" />
+            <span className="text-lg">Help Desk</span>
+          </NavLink>
+        </div>
       </div>
-    </aside>
+    </div>
   );
 };
+export default Sidebar;

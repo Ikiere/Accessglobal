@@ -4,11 +4,14 @@
   "private": true,
   "description": "AccessGlobal platform monorepo - Frontend portal and Admin dashboard",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "backend"
   ],
   "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:admin": "npm run dev --workspace=apps/admin",
+    "build:backend": "npm run build --workspace=backend",
     "build:frontend": "npm run build --workspace=apps/frontend",
     "build:admin": "npm run build --workspace=apps/admin",
     "build": "npm run build --workspaces --if-present",
