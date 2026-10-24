@@ -126,9 +126,36 @@ export const ProductGrid = ({
   onSelectCategory,
   onAddToCart,
 }: ProductGridProps) => {
+  const [products, setProducts] = useState<Product[]>(productsData);
   const [addedIds, setAddedIds] = useState<{ [key: string]: boolean }>({});
 
-  const filteredProducts = productsData.filter(
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/products')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted || !data?.products?.length) return;
+        const colorPalette = ['#dcd8ff', '#d3f7ea', '#ffe1ef', '#dfe9ff', '#ffe9c2', '#f0e3d6'];
+        const mapped: Product[] = data.products.map((p: any, idx: number) => ({
+          id: p.id,
+          name: p.title || p.name,
+          category: p.category || 'General',
+          price: Number(p.price) || 0,
+          bg: colorPalette[idx % colorPalette.length],
+          tag: p.inStock && p.inStock < 10 ? 'Low Stock' : p.rating && p.rating >= 4.8 ? 'Top rated' : '',
+          image: p.mainImage || p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+        }));
+        setProducts(mapped);
+      })
+      .catch(() => {
+        // Resilient fallback to static seed catalog
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredProducts = products.filter(
     (p) => currentCategory === 'All' || p.category === currentCategory
   );
 
