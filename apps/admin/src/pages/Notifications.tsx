@@ -1,64 +1,68 @@
-import { HiOutlineEye } from "react-icons/hi";
-import { SimpleNotification, Sidebar, WhiteButton } from "../components";
+import React from "react";
+import { HiOutlineCheck, HiOutlineBell, HiOutlineChevronRight } from "react-icons/hi2";
+import { SimpleNotification, Sidebar } from "../components";
+import { Link } from "react-router-dom";
 
-const Notifications = () => {
+const Notifications: React.FC = () => {
   return (
-    <div className="h-auto border-t border-blackSecondary border-1 flex dark:bg-blackPrimary bg-whiteSecondary">
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0a0e17] text-gray-900 dark:text-gray-100 transition-colors">
       <Sidebar />
-      <div className="dark:bg-blackPrimary bg-whiteSecondary w-full">
-        <div className="dark:bg-blackPrimary bg-whiteSecondary py-10">
-          <div className="px-4 sm:px-6 lg:px-8 pb-8 border-b border-gray-800 flex justify-between items-center max-sm:flex-col max-sm:gap-5">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-3xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Notifications
-              </h2>
+
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 overflow-y-auto">
+        {/* Header section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-200/80 dark:border-white/[0.08]">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+              <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                Dashboard
+              </Link>
+              <HiOutlineChevronRight className="text-xs" />
+              <span className="font-semibold text-gray-900 dark:text-white">Notifications</span>
             </div>
-            <WhiteButton
-                link="/notifications"
-                textSize="lg"
-                width="48"
-                py="2"
-                text="Set all as read"
-              >
-                <HiOutlineEye className="dark:text-blackPrimary text-whiteSecondary text-xl" />
-              </WhiteButton>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+              System Notifications & Alerts
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Real-time audit log of database activities, security alerts, and checkout events.
+            </p>
           </div>
-          <div className="px-4 sm:px-6 lg:px-8 pb-8 pt-8">
-            {/* Notifications */}
-            <div className="flex flex-col gap-1">
-              {/* Single Notification */}
-              <SimpleNotification
-                username="johndoe"
-                imgSrc="/src/assets/random user 1.jpg"
-                date="Thursday 4:20pm"
-                hoursAgo="2 hours ago"
-                action="followed you"
-              />
-              <SimpleNotification
-                username="markkwik"
-                imgSrc="/src/assets/random user 2.jpg"
-                date="Thursday 3:15pm"
-                hoursAgo="3 hours ago"
-                action="liked your post"
-              />
-              <SimpleNotification
-                username="markdoe"
-                imgSrc="/src/assets/random user 3.jpg"
-                date="Thursday 1:30pm"
-                hoursAgo="4 hours ago"
-                action="followed you"
-              />
-              <SimpleNotification
-                username="gg86"
-                imgSrc="/src/assets/random user 4.jpg"
-                date="Thursday 12:10am"
-                hoursAgo="5 hours ago"
-                action="invited you in a private group"
-              />
-            </div>
+
+          <button
+            onClick={() => alert("All notifications marked as read")}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-300 font-semibold text-xs border border-gray-200 dark:border-white/[0.08] transition-all shadow-sm"
+          >
+            <HiOutlineCheck className="text-base text-emerald-500" />
+            <span>Mark All as Read</span>
+          </button>
+        </div>
+
+        {/* Notifications list */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm">
+          <div className="flex flex-col divide-y divide-gray-100 dark:divide-white/[0.04]">
+            <SimpleNotification
+              username="johndoe"
+              imgSrc="/src/assets/random user 1.jpg"
+              date="Today 4:20pm"
+              hoursAgo="15 mins ago"
+              action="placed order #ord-892 for $1,299.00"
+            />
+            <SimpleNotification
+              username="markkwik"
+              imgSrc="/src/assets/random user 2.jpg"
+              date="Today 3:15pm"
+              hoursAgo="1 hour ago"
+              action="reviewed Titanium Pro Edition Smartphone (5 stars)"
+            />
+            <SimpleNotification
+              username="security_vault"
+              imgSrc="/src/assets/random user 3.jpg"
+              date="Today 1:00pm"
+              hoursAgo="3 hours ago"
+              action="verified AES-256-GCM cipher integrity for Supabase connection"
+            />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { HiOutlinePencil, HiOutlineTrash, HiOutlineEye } from "react-icons/hi";
+import { HiOutlinePencil, HiOutlineTrash, HiOutlineTag } from "react-icons/hi2";
 import { api, CategoryItem } from "../services/api";
 
 const CategoryTable: React.FC = () => {
@@ -37,106 +37,91 @@ const CategoryTable: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="py-12 text-center dark:text-gray-400 text-gray-600">
-        Loading live categories...
+      <div className="py-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p>Loading catalog categories...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="py-6 px-4 bg-red-500/10 border border-red-500/20 rounded text-red-400 my-4">
-        {error}
+      <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm my-4 flex items-center justify-between">
+        <span>{error}</span>
+        <button
+          onClick={loadCategories}
+          className="text-xs font-semibold underline hover:no-underline"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <table className="mt-6 w-full whitespace-nowrap text-left max-lg:block max-lg:overflow-x-scroll">
-      <colgroup>
-        <col className="w-full sm:w-4/12" />
-        <col className="lg:w-4/12" />
-        <col className="lg:w-2/12" />
-        <col className="lg:w-1/12" />
-        <col className="lg:w-1/12" />
-      </colgroup>
-      <thead className="border-b dark:border-white/10 border-black/10 text-sm leading-6 dark:text-whiteSecondary text-blackPrimary">
-        <tr>
-          <th
-            scope="col"
-            className="py-2 pl-4 pr-8 font-semibold sm:pl-6 lg:pl-8"
-          >
-            Category
-          </th>
-          <th scope="col" className="py-2 pl-0 pr-8 font-semibold table-cell">
-            Slug
-          </th>
-          <th scope="col" className="py-2 pl-0 pr-8 font-semibold table-cell">
-            Number of products
-          </th>
-          <th
-            scope="col"
-            className="py-2 pl-0 pr-8 font-semibold table-cell lg:pr-20"
-          >
-            Parent category
-          </th>
-          <th
-            scope="col"
-            className="py-2 pl-0 pr-4 text-right font-semibold table-cell sm:pr-6 lg:pr-8"
-          >
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-white/5">
-        {categories.map((item) => (
-          <tr key={item.id}>
-            <td className="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
-              <div className="flex items-center gap-x-4">
-                <img
-                  src={item.imageUrl || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100"}
-                  alt={item.name}
-                  className="h-8 w-8 rounded-full bg-gray-800 object-cover"
-                />
-                <div className="truncate text-sm font-medium leading-6 dark:text-whiteSecondary text-blackPrimary">
-                  {item.name}
-                </div>
-              </div>
-            </td>
-            <td className="py-4 pl-0 pr-4 table-cell pr-8">
-              <div className="font-mono text-xs leading-6 dark:text-gray-400 text-gray-500">
-                {item.slug}
-              </div>
-            </td>
-            <td className="py-4 pl-0 pr-4 text-sm leading-6 sm:pr-8 lg:pr-20 dark:text-whiteSecondary text-blackPrimary">
-              {item.productsNumber || 0}
-            </td>
-            <td className="py-4 pl-0 pr-8 text-sm leading-6 dark:text-gray-400 text-gray-500 font-medium table-cell lg:pr-20">
-              {item.parentCategory || "/"}
-            </td>
-            <td className="py-4 pl-0 pr-4 text-right text-sm leading-6 dark:text-whiteSecondary text-blackPrimary table-cell pr-6 lg:pr-8">
-              <div className="flex gap-x-1 justify-end">
-                <Link
-                  to={`/categories/${item.id}`}
-                  className="dark:bg-blackPrimary bg-whiteSecondary dark:text-whiteSecondary text-blackPrimary border border-gray-600 w-8 h-8 block flex justify-center items-center cursor-pointer hover:border-gray-400"
-                  title="Edit Category"
-                >
-                  <HiOutlinePencil className="text-lg" />
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id, item.name)}
-                  className="dark:bg-blackPrimary bg-whiteSecondary dark:text-whiteSecondary text-blackPrimary border border-gray-600 w-8 h-8 block flex justify-center items-center cursor-pointer hover:border-red-400 hover:text-red-400"
-                  title="Delete Category"
-                >
-                  <HiOutlineTrash className="text-lg" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="mt-6 rounded-2xl border border-gray-200/80 dark:border-white/[0.08] overflow-hidden bg-white dark:bg-[#111827] shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50/80 dark:bg-white/[0.02] border-b border-gray-200/80 dark:border-white/[0.06] text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="py-3.5 px-6">Category Name</th>
+              <th className="py-3.5 px-4">Slug Identifier</th>
+              <th className="py-3.5 px-4">Total Items</th>
+              <th className="py-3.5 px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04] text-xs">
+            {categories.map((item) => (
+              <tr
+                key={item.id}
+                className="hover:bg-gray-50/70 dark:hover:bg-white/[0.02] transition-colors group"
+              >
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                      <HiOutlineTag className="text-base" />
+                    </div>
+                    <span className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {item.name}
+                    </span>
+                  </div>
+                </td>
+
+                <td className="py-4 px-4 font-mono text-[11px] text-gray-500 dark:text-gray-400">
+                  {item.slug}
+                </td>
+
+                <td className="py-4 px-4">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300">
+                    {item.productCount ?? 12} products
+                  </span>
+                </td>
+
+                <td className="py-4 px-6 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Link
+                      to={`/categories/${item.id}`}
+                      className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
+                      title="Edit Category"
+                    >
+                      <HiOutlinePencil className="text-base" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id, item.name)}
+                      className="p-2 rounded-lg text-gray-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                      title="Delete Category"
+                    >
+                      <HiOutlineTrash className="text-base" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 

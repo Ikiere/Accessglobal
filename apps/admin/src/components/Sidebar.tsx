@@ -1,184 +1,182 @@
-// *********************
-// Role of the component: Sidebar component that displays the sidebar navigation
-// Name of the component: Sidebar.tsx
-// Developer: Aleksandar Kuzmanovic & AccessGlobal
-// Version: 2.0
-// *********************
-
-import { HiLogin, HiOutlineHome, HiUserGroup } from "react-icons/hi";
-import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
-import { HiOutlineTag } from "react-icons/hi";
-import { HiOutlineTruck } from "react-icons/hi";
-import { HiOutlineStar } from "react-icons/hi";
-import { HiOutlineInformationCircle } from "react-icons/hi";
+import React from "react";
+import {
+  HiOutlineHome,
+  HiOutlineDevicePhoneMobile,
+  HiOutlineTag,
+  HiOutlineTruck,
+  HiOutlineStar,
+  HiOutlineInformationCircle,
+  HiOutlineUser,
+  HiOutlineXMark,
+  HiOutlineShieldCheck,
+  HiOutlineArrowRightOnRectangle,
+  HiOutlineBell,
+} from "react-icons/hi2";
 import { HiOutlineDatabase } from "react-icons/hi";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { HiOutlineX } from "react-icons/hi";
 import { setSidebar } from "../features/dashboard/dashboardSlice";
-import { HiOutlineUser } from "react-icons/hi";
-import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 
-const Sidebar = () => {
-  const [isLandingOpen, setIsLandingOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+const Sidebar: React.FC = () => {
   const { isSidebarOpen } = useAppSelector((state) => state.dashboard);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    api.logout();
+    navigate("/login");
+  };
+
+  const navItemClass = (isActive: boolean) =>
+    `flex items-center gap-3.5 px-3.5 py-2.5 mx-2 my-0.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+      isActive
+        ? "bg-indigo-600/10 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400 font-semibold shadow-sm"
+        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/[0.04]"
+    }`;
 
   const sidebarClass: string = isSidebarOpen
     ? "sidebar-open"
     : "sidebar-closed";
 
-  const navActiveClass: string =
-    "block dark:bg-whiteSecondary flex items-center self-stretch gap-4 py-4 px-6 cursor-pointer max-xl:py-3 dark:text-blackPrimary bg-white text-blackPrimary";
-  const navInactiveClass: string =
-    "block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary";
-
   return (
-    <div className="relative">
+    <aside className="relative flex-shrink-0 z-30">
       <div
-        className={`w-72 h-[100vh] dark:bg-blackPrimary bg-whiteSecondary pt-6 xl:sticky xl:top-0 xl:z-10 max-xl:fixed max-xl:top-0 max-xl:z-10 xl:translate-x-0 ${sidebarClass}`}
+        className={`w-64 h-screen xl:sticky xl:top-0 max-xl:fixed max-xl:top-0 max-xl:left-0 xl:translate-x-0 ${sidebarClass} flex flex-col justify-between dark:bg-[#0b0f19] bg-white border-r border-gray-200/80 dark:border-white/[0.06] transition-transform duration-300 ease-in-out`}
       >
-        <HiOutlineX
-          className="dark:text-whiteSecondary text-blackPrimary text-2xl ml-auto mb-2 mr-2 cursor-pointer xl:py-3"
-          onClick={() => dispatch(setSidebar())}
-        />
-        <div>
-          <div
-            onClick={() => setIsLandingOpen(() => !isLandingOpen)}
-            className="block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary"
-          >
-            <HiOutlineHome className="text-xl" />
-            <span className="text-lg">Landing pages</span>
+        {/* Top header & branding */}
+        <div className="overflow-y-auto overflow-x-hidden flex-1 py-4">
+          <div className="flex items-center justify-between px-5 mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 font-bold text-sm">
+                AG
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
+                  AccessGlobal
+                </span>
+                <span className="text-[10px] uppercase font-semibold text-indigo-600 dark:text-indigo-400 tracking-wider">
+                  Admin Console
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => dispatch(setSidebar())}
+              aria-label="Close sidebar"
+              className="xl:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.05]"
+            >
+              <HiOutlineXMark className="text-lg" />
+            </button>
           </div>
-          {isLandingOpen && (
+
+          {/* Navigation sections */}
+          <nav className="space-y-6">
+            {/* Main Overview */}
             <div>
-              <NavLink
-                to="/"
-                className={(isActiveObj) =>
-                  isActiveObj.isActive ? navActiveClass : navInactiveClass
-                }
-              >
-                <HiOutlineHome className="text-xl" />
-                <span className="text-lg">Overview v1</span>
+              <p className="px-5 mb-1.5 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+                Main
+              </p>
+              <NavLink to="/" end className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineHome className="text-lg" />
+                <span>Dashboard</span>
               </NavLink>
 
-              <NavLink
-                to="/landing-v2"
-                className={(isActiveObj) =>
-                  isActiveObj.isActive ? navActiveClass : navInactiveClass
-                }
-              >
-                <HiOutlineHome className="text-xl" />
-                <span className="text-lg">Overview v2</span>
+              <NavLink to="/supabase-settings" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineDatabase className="text-lg text-emerald-500" />
+                <span className="flex items-center justify-between flex-1">
+                  <span>Supabase DB</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                    Safe
+                  </span>
+                </span>
               </NavLink>
             </div>
-          )}
 
-          <NavLink
-            to="/products"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineDevicePhoneMobile className="text-xl" />
-            <span className="text-lg">Products</span>
-          </NavLink>
-          <NavLink
-            to="/categories"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineTag className="text-xl" />
-            <span className="text-lg">Categories</span>
-          </NavLink>
-          <NavLink
-            to="/orders"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineTruck className="text-xl" />
-            <span className="text-lg">Orders</span>
-          </NavLink>
-          <NavLink
-            to="/users"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineUser className="text-xl" />
-            <span className="text-lg">Users</span>
-          </NavLink>
-          <NavLink
-            to="/reviews"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineStar className="text-xl" />
-            <span className="text-lg">Reviews</span>
-          </NavLink>
-
-          {/* Supabase Safe Database Settings */}
-          <NavLink
-            to="/supabase-settings"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
-          >
-            <HiOutlineDatabase className="text-xl text-emerald-400" />
-            <span className="text-lg flex items-center justify-between w-full">
-              <span>Supabase DB</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider">Safe</span>
-            </span>
-          </NavLink>
-
-          <div
-            onClick={() => setIsAuthOpen(() => !isAuthOpen)}
-            className="block flex items-center self-stretch gap-4 py-4 px-6 dark:bg-blackPrimary dark:hover:bg-blackSecondary cursor-pointer max-xl:py-3 dark:text-whiteSecondary hover:bg-white text-blackPrimary bg-whiteSecondary"
-          >
-            <HiUserGroup className="text-xl" />
-            <span className="text-lg">Auth</span>
-          </div>
-          {isAuthOpen && (
+            {/* Commerce Management */}
             <div>
-              <NavLink
-                to="/login"
-                className={(isActiveObj) =>
-                  isActiveObj.isActive ? navActiveClass : navInactiveClass
-                }
-              >
-                <HiLogin className="text-xl" />
-                <span className="text-lg">Login</span>
+              <p className="px-5 mb-1.5 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+                Commerce
+              </p>
+              <NavLink to="/products" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineDevicePhoneMobile className="text-lg" />
+                <span>Products</span>
               </NavLink>
-              <NavLink
-                to="/register"
-                className={(isActiveObj) =>
-                  isActiveObj.isActive ? navActiveClass : navInactiveClass
-                }
-              >
-                <HiUserGroup className="text-xl" />
-                <span className="text-lg">Register</span>
+
+              <NavLink to="/categories" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineTag className="text-lg" />
+                <span>Categories</span>
+              </NavLink>
+
+              <NavLink to="/orders" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineTruck className="text-lg" />
+                <span>Orders</span>
               </NavLink>
             </div>
-          )}
+
+            {/* Customers & Engagement */}
+            <div>
+              <p className="px-5 mb-1.5 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+                Customers
+              </p>
+              <NavLink to="/users" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineUser className="text-lg" />
+                <span>Users & Roles</span>
+              </NavLink>
+
+              <NavLink to="/reviews" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineStar className="text-lg" />
+                <span>Reviews</span>
+              </NavLink>
+
+              <NavLink to="/notifications" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineBell className="text-lg" />
+                <span>Notifications</span>
+              </NavLink>
+            </div>
+
+            {/* System */}
+            <div>
+              <p className="px-5 mb-1.5 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+                System
+              </p>
+              <NavLink to="/help-desk" className={({ isActive }) => navItemClass(isActive)}>
+                <HiOutlineInformationCircle className="text-lg" />
+                <span>Documentation</span>
+              </NavLink>
+            </div>
+          </nav>
         </div>
 
-        <div className="absolute bottom-0 border-1 border-t dark:border-blackSecondary border-blackSecondary w-full">
-          <NavLink
-            to="/help-desk"
-            className={(isActiveObj) =>
-              isActiveObj.isActive ? navActiveClass : navInactiveClass
-            }
+        {/* Bottom card & session info */}
+        <div className="p-3 border-t border-gray-200/80 dark:border-white/[0.06] space-y-2">
+          {/* Supabase safe vault pill */}
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-indigo-500/5 to-transparent border border-emerald-500/20 dark:border-emerald-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                  <HiOutlineShieldCheck className="text-emerald-500 text-xs" /> AES-256 Vault
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">Zero Public Exposure</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Logout / Switch Session */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
           >
-            <HiOutlineInformationCircle className="text-xl" />
-            <span className="text-lg">Help Desk</span>
-          </NavLink>
+            <HiOutlineArrowRightOnRectangle className="text-sm" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
+
 export default Sidebar;

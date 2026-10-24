@@ -1,38 +1,59 @@
-import { FAQSection, SearchInput, Sidebar } from "../components";
-import { HiOutlineInformationCircle } from "react-icons/hi";
+import React from "react";
+import { FAQSection, Sidebar } from "../components";
+import { HiOutlineInformationCircle, HiOutlineChevronRight, HiOutlineMagnifyingGlass } from "react-icons/hi2";
 import { faqs } from "../utils/data";
+import { Link } from "react-router-dom";
 
-const HelpDesk = () => {
+const HelpDesk: React.FC = () => {
   return (
-    <div className="h-auto border-t border-blackSecondary border-1 flex dark:bg-blackPrimary bg-whiteSecondary">
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0a0e17] text-gray-900 dark:text-gray-100 transition-colors">
       <Sidebar />
-      <div className="dark:bg-blackPrimary bg-whiteSecondary w-full">
-        <div className="dark:bg-blackPrimary bg-whiteSecondary py-10">
-          <div className="px-4 sm:px-6 lg:px-8 pb-8 border-b border-gray-800 flex justify-between items-center max-sm:flex-col max-sm:gap-5">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-3xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Help Desk
-              </h2>
+
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 overflow-y-auto">
+        {/* Header section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-200/80 dark:border-white/[0.08]">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+              <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                Dashboard
+              </Link>
+              <HiOutlineChevronRight className="text-xs" />
+              <span className="font-semibold text-gray-900 dark:text-white">Help Desk</span>
             </div>
-            <button className="dark:bg-blackPrimary bg-whiteSecondary border border-gray-600 w-48 py-2 text-lg dark:hover:border-gray-500 hover:border-gray-400 duration-200 flex items-center justify-center gap-x-2">
-              <HiOutlineInformationCircle className="dark:text-whiteSecondary text-blackPrimary text-xl" />
-              <span className="dark:text-whiteSecondary text-blackPrimary font-medium">
-                Get Help
-              </span>
-            </button>
-          </div>
-          {/* Search Input for questions */}
-          <div className="px-4 sm:px-6 lg:px-8 pb-8 pt-8">
-            <SearchInput />
-            <p className="dark:text-whiteSecondary text-blackPrimary mt-4">
-              Welcome to the Help Desk. How can we assist you today?
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+              Documentation & Knowledge Base
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Architecture guides, Supabase integration instructions, and platform administration FAQ.
             </p>
           </div>
-          {/* FAQ Section */}
+
+          <Link
+            to="/supabase-settings"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-500/25 transition-all"
+          >
+            <HiOutlineInformationCircle className="text-base" />
+            <span>Supabase Setup Guide</span>
+          </Link>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative w-full max-w-xl mb-8">
+          <HiOutlineMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
+          <input
+            type="text"
+            placeholder="Search documentation, setup instructions, or API guides..."
+            className="w-full h-10 pl-10 pr-4 text-xs rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-all placeholder-gray-400"
+          />
+        </div>
+
+        {/* FAQ Section in rounded card */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm">
           <FAQSection faqs={faqs} />
         </div>
-      </div>
+      </main>
     </div>
   );
 };
+
 export default HelpDesk;

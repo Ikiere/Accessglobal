@@ -1,81 +1,73 @@
+import React from "react";
+import { ReviewsTable, Sidebar } from "../components";
+import { Link } from "react-router-dom";
 import {
-  HiOutlineChevronRight,
   HiOutlinePlus,
-  HiOutlineSearch,
-} from "react-icons/hi";
-import {
-  Pagination,
-  ReviewsTable,
-  RowsPerPage,
-  Sidebar,
-  WhiteButton,
-} from "../components";
-import { AiOutlineExport } from "react-icons/ai";
+  HiOutlineChevronRight,
+  HiOutlineMagnifyingGlass,
+  HiOutlineArrowDownTray,
+} from "react-icons/hi2";
 
-const Reviews = () => {
+const Reviews: React.FC = () => {
   return (
-    <div className="h-auto border-t border-blackSecondary border-1 flex dark:bg-blackPrimary bg-whiteSecondary">
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0a0e17] text-gray-900 dark:text-gray-100 transition-colors">
       <Sidebar />
-      <div className="dark:bg-blackPrimary bg-whiteSecondary w-full ">
-        <div className="dark:bg-blackPrimary bg-whiteSecondary py-10">
-          <div className="px-4 sm:px-6 lg:px-8 flex justify-between items-center max-sm:flex-col max-sm:gap-5">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-3xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                All reviews
-              </h2>
-              <p className="dark:text-whiteSecondary text-blackPrimary text-base font-normal flex items-center">
-                <span>Dashboard</span>{" "}
-                <HiOutlineChevronRight className="text-lg" />{" "}
-                <span>All reviews</span>
-              </p>
+
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 overflow-y-auto">
+        {/* Header section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+              <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                Dashboard
+              </Link>
+              <HiOutlineChevronRight className="text-xs" />
+              <span className="font-semibold text-gray-900 dark:text-white">Reviews</span>
             </div>
-            <div className="flex gap-x-2 max-[370px]:flex-col max-[370px]:gap-2 max-[370px]:items-center">
-              <button className="dark:bg-blackPrimary bg-whiteSecondary border border-gray-600 w-32 py-2 text-lg dark:hover:border-gray-500 hover:border-gray-400 duration-200 flex items-center justify-center gap-x-2">
-                <AiOutlineExport className="dark:text-whiteSecondary text-blackPrimary text-base" />
-                <span className="dark:text-whiteSecondary text-blackPrimary font-medium">Export</span>
-              </button>
-              <WhiteButton
-                link="/reviews/create-review"
-                text="Add a review"
-                textSize="lg"
-                py="2"
-                width="48"
-              >
-                <HiOutlinePlus className="dark:text-blackPrimary text-whiteSecondary" />
-              </WhiteButton>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+              Customer Feedback & Sentiment
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Monitor product ratings, verify customer comments, and moderate community sentiment.
+            </p>
           </div>
-          <div className="px-4 sm:px-6 lg:px-8 flex justify-between items-center mt-5 max-sm:flex-col max-sm:gap-2">
-            <div className="relative">
-              <HiOutlineSearch className="text-gray-400 text-lg absolute top-3 left-3" />
-              <input
-                type="text"
-                className="w-60 h-10 border dark:bg-blackPrimary bg-white border-gray-600 dark:text-whiteSecondary text-blackPrimary outline-0 indent-10 dark:focus:border-gray-500 focus:border-gray-400"
-                placeholder="Search reviews..."
-              />
-            </div>
-            <div>
-              <select
-                className="w-60 h-10 dark:bg-blackPrimary bg-whiteSecondary border border-gray-600 dark:text-whiteSecondary text-blackPrimary outline-0 pl-3 pr-8 cursor-pointer dark:hover:border-gray-500 hover:border-gray-400"
-                name="sort"
-                id="sort"
-              >
-                <option value="default">Sort by</option>
-                <option value="az">A-Z</option>
-                <option value="za">Z-A</option>
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
-            </div>
-          </div>
-          <ReviewsTable />
-          <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-6 max-sm:flex-col gap-4 max-sm:pt-6 max-sm:pb-0">
-            <RowsPerPage />
-            <Pagination />
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-300 font-semibold text-xs border border-gray-200 dark:border-white/[0.08] transition-all shadow-sm"
+            >
+              <HiOutlineArrowDownTray className="text-base" />
+              <span>Export</span>
+            </button>
+
+            <Link
+              to="/reviews/create-review"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <HiOutlinePlus className="text-base" />
+              <span>Add Review</span>
+            </Link>
           </div>
         </div>
-      </div>
+
+        {/* Filter bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm mb-2">
+          <div className="relative w-full sm:w-80">
+            <HiOutlineMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
+            <input
+              type="text"
+              placeholder="Search reviewer or product name..."
+              className="w-full h-9 pl-9 pr-4 text-xs rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] focus:border-indigo-500 text-gray-900 dark:text-white outline-none transition-all placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* Reviews Data Table */}
+        <ReviewsTable />
+      </main>
     </div>
   );
 };
+
 export default Reviews;

@@ -34,9 +34,10 @@ export interface CategoryItem {
   id: string;
   name: string;
   slug: string;
-  imageUrl: string;
-  productsNumber: number;
-  parentCategory: string;
+  imageUrl?: string;
+  productsNumber?: number;
+  productCount?: number;
+  parentCategory?: string;
 }
 
 export interface OrderItem {
@@ -95,6 +96,10 @@ class ApiService {
 
   public clearToken(): void {
     localStorage.removeItem('accessglobal_token');
+  }
+
+  public logout(): void {
+    this.clearToken();
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

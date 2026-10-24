@@ -111,23 +111,23 @@ export const SupabaseSettings: React.FC = () => {
   };
 
   return (
-    <div className="h-auto border-t dark:border-blackSecondary border-blackSecondary border-1 flex dark:bg-blackPrimary bg-whiteSecondary">
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0a0e17] text-gray-900 dark:text-gray-100 transition-colors">
       <Sidebar />
-      <div className="dark:bg-blackPrimary bg-whiteSecondary w-full min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 overflow-y-auto">
         
         {/* Header */}
         <div className="flex flex-col gap-2 mb-8">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-500 border border-emerald-500/20">
+            <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500 border border-emerald-500/20 shadow-sm">
               <HiOutlineDatabase className="text-3xl" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold dark:text-whiteSecondary text-blackPrimary">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                 Safe Supabase Database Integration
               </h1>
-              <p className="text-sm dark:text-gray-400 text-gray-600 mt-1 flex items-center gap-2">
-                <AiOutlineSafetyCertificate className="text-emerald-500 text-lg" />
-                Zero Public Key Leakage: Secrets are encrypted via AES-256-GCM on the backend.
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
+                <AiOutlineSafetyCertificate className="text-emerald-500 text-base" />
+                Zero Public Key Leakage: Credentials reside strictly in the server-side AES-256-GCM vault.
               </p>
             </div>
           </div>
@@ -354,7 +354,7 @@ export const SupabaseSettings: React.FC = () => {
           </pre>
         </div>
 
-      </div>
+      </main>
     </div>
   );
 };
