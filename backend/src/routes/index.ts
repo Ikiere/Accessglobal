@@ -7,6 +7,7 @@ import ordersRoutes from './orders.routes.js';
 import usersRoutes from './users.routes.js';
 import reviewsRoutes from './reviews.routes.js';
 import statsRoutes from './stats.routes.js';
+import setupRoutes from './setup.routes.js';
 import { SupabaseService } from '../services/supabase.service.js';
 
 const router = Router();
@@ -25,6 +26,7 @@ router.get('/health', async (req, res) => {
   });
 });
 
+router.use('/setup', setupRoutes);
 router.use('/auth', authRoutes);
 router.use('/supabase', supabaseRoutes);
 router.use('/products', productsRoutes);

@@ -74,4 +74,13 @@ export class SupabaseController {
       res.status(500).json({ error: err.message || 'Failed to load SQL schema.' });
     }
   }
+
+  public static getPublicConfig(req: Request, res: Response): void {
+    try {
+      const config = SupabaseController.service.getPublicConfig();
+      res.json(config);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to fetch public Supabase config.' });
+    }
+  }
 }

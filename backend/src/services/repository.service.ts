@@ -435,6 +435,58 @@ export class RepositoryService {
     return newUser;
   }
 
+  public async upsertAdminUser(user: { name: string; email: string; passwordHash: string }): Promise<User> {
+    const normalized = user.email.trim().toLowerCase();
+    const supabase = SupabaseService.getInstance().getClient();
+
+    if (supabase) {
+      try {
+        const { data: existing } = await supabase.from('users').select('id').eq('email', normalized).maybeSingle();
+        if (existing) {
+          await supabase.from('users').update({
+            name: user.name,
+            role: 'admin',
+            status: 'active',
+            password_hash: user.passwordHash
+          }).eq('id', existing.id);
+        } else {
+          await supabase.from('users').insert({
+            name: user.name,
+            email: normalized,
+            role: 'admin',
+            status: 'active',
+            password_hash: user.passwordHash,
+            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`
+          });
+        }
+      } catch (err) {
+        console.warn('[RepositoryService] Supabase upsertAdminUser failed:', err);
+      }
+    }
+
+    let localUser = this.localData.users.find(u => u.email.toLowerCase() === normalized);
+    if (localUser) {
+      localUser.name = user.name;
+      localUser.role = 'admin';
+      localUser.status = 'active';
+      localUser.passwordHash = user.passwordHash;
+    } else {
+      localUser = {
+        id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+        name: user.name,
+        email: normalized,
+        role: 'admin',
+        status: 'active',
+        passwordHash: user.passwordHash,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
+        createdAt: new Date().toISOString()
+      };
+      this.localData.users.push(localUser);
+    }
+    this.saveLocalStore(this.localData);
+    return localUser;
+  }
+
   public async getUserByEmail(email: string): Promise<User | null> {
     const normalized = email.trim().toLowerCase();
     const supabase = SupabaseService.getInstance().getClient();

@@ -4,6 +4,7 @@ import { SupabaseController } from '../controllers/supabase.controller.js';
 const router = Router();
 
 router.get('/status', SupabaseController.getStatus);
+router.get('/public-config', SupabaseController.getPublicConfig);
 router.post('/test', SupabaseController.testConnection);
 router.post('/connect', SupabaseController.connect);
 router.post('/disconnect', SupabaseController.disconnect);

@@ -85,6 +85,34 @@ export interface DashboardStats {
   topProducts: ProductItem[];
 }
 
+export interface SetupStatus {
+  isInstalled: boolean;
+  requiresSetup: boolean;
+  supabaseConfigured: boolean;
+  installedAt?: string;
+  adminEmail?: string;
+}
+
+export interface CompleteSetupParams {
+  supabase?: {
+    url: string;
+    anonKey: string;
+    serviceRoleKey?: string;
+  };
+  admin: {
+    name: string;
+    email: string;
+    password: string;
+  };
+  useSandbox?: boolean;
+}
+
+export interface PublicSupabaseConfig {
+  url: string;
+  anonKey: string;
+  isConfigured: boolean;
+}
+
 class ApiService {
   private getToken(): string | null {
     return localStorage.getItem('accessglobal_token');
@@ -96,6 +124,24 @@ class ApiService {
 
   public clearToken(): void {
     localStorage.removeItem('accessglobal_token');
+    localStorage.removeItem('accessglobal_user');
+  }
+
+  public isAuthenticated(): boolean {
+    return Boolean(this.getToken());
+  }
+
+  public getCurrentUser(): UserItem | null {
+    try {
+      const raw = localStorage.getItem('accessglobal_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  public setCurrentUser(user: UserItem): void {
+    localStorage.setItem('accessglobal_user', JSON.stringify(user));
   }
 
   public logout(): void {
@@ -262,6 +308,9 @@ class ApiService {
       body: JSON.stringify({ email, password })
     });
     this.setToken(res.token);
+    if (res.user) {
+      this.setCurrentUser(res.user);
+    }
     return res;
   }
 
@@ -271,11 +320,37 @@ class ApiService {
       body: JSON.stringify({ name, email, password })
     });
     this.setToken(res.token);
+    if (res.user) {
+      this.setCurrentUser(res.user);
+    }
     return res;
   }
 
   public async getMe(): Promise<{ user: UserItem }> {
     return this.request<{ user: UserItem }>('/auth/me');
+  }
+
+  // Setup / Onboarding
+  public async getSetupStatus(): Promise<SetupStatus> {
+    return this.request<SetupStatus>('/setup/status');
+  }
+
+  public async completeSetup(params: CompleteSetupParams): Promise<{ success: boolean; message: string; token: string; user: UserItem }> {
+    const res = await this.request<{ success: boolean; message: string; token: string; user: UserItem }>('/setup/complete', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    });
+    if (res.token) {
+      this.setToken(res.token);
+    }
+    if (res.user) {
+      this.setCurrentUser(res.user);
+    }
+    return res;
+  }
+
+  public async getPublicSupabaseConfig(): Promise<PublicSupabaseConfig> {
+    return this.request<PublicSupabaseConfig>('/supabase/public-config');
   }
 }
 

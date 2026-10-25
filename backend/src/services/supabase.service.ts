@@ -176,4 +176,15 @@ export class SupabaseService {
     }
     return '-- Schema file not found';
   }
+
+  public getPublicConfig(): { url: string; anonKey: string; isConfigured: boolean } {
+    const vault = VaultService.getVaultCredentials();
+    if (vault && vault.url && vault.anonKey) {
+      return { url: vault.url, anonKey: vault.anonKey, isConfigured: true };
+    }
+    if (config.supabase.url && config.supabase.anonKey) {
+      return { url: config.supabase.url, anonKey: config.supabase.anonKey, isConfigured: true };
+    }
+    return { url: '', anonKey: '', isConfigured: false };
+  }
 }

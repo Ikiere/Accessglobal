@@ -24,9 +24,15 @@ import {
   Reviews,
   Users,
   SupabaseSettings,
+  OnboardingWizard,
 } from "./pages";
+import { AuthGuard } from "./components";
 
 const router = createBrowserRouter([
+  {
+    path: "/setup",
+    element: <OnboardingWizard />,
+  },
   {
     path: "/login",
     element: <Login />,
@@ -37,7 +43,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <HomeLayout />,
+    element: (
+      <AuthGuard>
+        <HomeLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         index: true,

@@ -31,3 +31,4 @@ export { default as SingleProgressElementTotalSavings } from "./SingleProgressEl
 export { default as ThirdPartyAuthButton } from "./ThirdPartyAuthButton";
 export { default as LoginComponent } from "./LoginComponent";
 export { default as RegisterComponent } from "./RegisterComponent";
+export { default as AuthGuard } from "./AuthGuard";

@@ -22,3 +22,4 @@ export { default as LandingV2 } from "./LandingV2";
 export { default as Login } from "./Login";
 export { default as Register } from "./Register";
 export { default as SupabaseSettings } from "./SupabaseSettings";
+export { default as OnboardingWizard } from "./OnboardingWizard";
