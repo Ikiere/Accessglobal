@@ -5,12 +5,18 @@ import { z } from 'zod';
 const connectSchema = z.object({
   url: z.string().url('Invalid Supabase Project URL. Must start with https://'),
   anonKey: z.string().min(10, 'Anon Key must be at least 10 characters long.'),
-  serviceRoleKey: z.string().optional()
+  serviceRoleKey: z.string().optional(),
+  connectionString: z.string().optional()
 });
 
 const testSchema = z.object({
   url: z.string().url('Invalid Supabase Project URL.'),
   key: z.string().min(10, 'API key must be at least 10 characters long.')
+});
+
+const executeSqlSchema = z.object({
+  sql: z.string().min(10, 'SQL statement required.'),
+  connectionString: z.string().optional()
 });
 
 export class SupabaseController {
@@ -72,6 +78,24 @@ export class SupabaseController {
       res.json({ sql });
     } catch (err: any) {
       res.status(500).json({ error: err.message || 'Failed to load SQL schema.' });
+    }
+  }
+
+  public static async executeSql(req: Request, res: Response): Promise<void> {
+    try {
+      const parsed = executeSqlSchema.parse(req.body);
+      const result = await SupabaseController.service.executeSql(parsed.sql, parsed.connectionString);
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ error: err.errors[0].message });
+        return;
+      }
+      res.status(500).json({ error: err.message || 'SQL execution failed.' });
     }
   }
 

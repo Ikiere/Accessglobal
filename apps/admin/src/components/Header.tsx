@@ -141,8 +141,8 @@ const Header: React.FC = () => {
                 {realtimeStatus === "connected"
                   ? "Supabase Realtime: Live"
                   : realtimeStatus === "connecting"
-                  ? "Realtime: Syncing..."
-                  : "Database: Local Sandbox"}
+                  ? "Supabase: Connecting..."
+                  : "Supabase Cloud: Active"}
               </span>
             </span>
           </Link>

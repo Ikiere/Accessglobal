@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components';
 import { api, SupabaseStatus } from '../services/api';
 import { HiOutlineDatabase, HiOutlineShieldCheck, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineRefresh, HiOutlineClipboardCopy, HiOutlineExternalLink } from 'react-icons/hi';
 import { AiOutlineSafetyCertificate } from 'react-icons/ai';
 
 export const SupabaseSettings: React.FC = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<SupabaseStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [url, setUrl] = useState<string>('');
@@ -88,17 +90,12 @@ export const SupabaseSettings: React.FC = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to disconnect Supabase? The backend will revert to the local resilient vault.')) {
+    if (!window.confirm('Are you sure you want to disconnect Supabase? Disconnecting will unbind your database and require completing the installation setup wizard again.')) {
       return;
     }
     try {
       await api.disconnectSupabase();
-      setBanner({ type: 'success', text: 'Supabase disconnected. Switched to local resilient store.' });
-      setUrl('');
-      setAnonKey('');
-      setServiceRoleKey('');
-      setTestResult(null);
-      await fetchStatus();
+      navigate('/setup', { replace: true });
     } catch (err: any) {
       setBanner({ type: 'error', text: err.message || 'Failed to disconnect.' });
     }

@@ -17,22 +17,32 @@ export interface SetupStatusResponse {
   isInstalled: boolean;
   requiresSetup: boolean;
   supabaseConfigured: boolean;
+  tablesReady: boolean;
+  hasAdmin: boolean;
+  tablesStatus?: {
+    categories: boolean;
+    products: boolean;
+    orders: boolean;
+    users: boolean;
+    reviews: boolean;
+  };
+  projectUrl?: string;
+  projectRef?: string;
   installedAt?: string;
   adminEmail?: string;
 }
 
-export interface CompleteSetupPayload {
-  supabase?: {
-    url: string;
-    anonKey: string;
-    serviceRoleKey?: string;
-  };
-  admin: {
-    name: string;
-    email: string;
-    password: string;
-  };
-  useSandbox?: boolean;
+export interface ConnectSupabasePayload {
+  url: string;
+  anonKey: string;
+  serviceRoleKey?: string;
+  connectionString?: string;
+}
+
+export interface CreateAdminPayload {
+  name: string;
+  email: string;
+  password: string;
 }
 
 export class SetupService {
@@ -48,77 +58,147 @@ export class SetupService {
     return SetupService.instance;
   }
 
-  public isInstalled(): boolean {
+  public async isInstalled(): Promise<boolean> {
+    if (!this.supabaseService.isConnected()) {
+      return false;
+    }
     if (!fs.existsSync(SETUP_FILE)) {
       return false;
     }
     try {
       const data = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8'));
-      return Boolean(data.installed);
+      if (!data.installed) return false;
+      const hasAdmin = await this.repoService.hasAdminUser();
+      return hasAdmin;
     } catch {
       return false;
     }
   }
 
-  public getStatus(): SetupStatusResponse {
-    if (!fs.existsSync(SETUP_FILE)) {
+  public async getStatus(): Promise<SetupStatusResponse> {
+    const isConnected = this.supabaseService.isConnected();
+    if (!isConnected) {
       return {
         isInstalled: false,
         requiresSetup: true,
-        supabaseConfigured: this.supabaseService.isConnected()
+        supabaseConfigured: false,
+        tablesReady: false,
+        hasAdmin: false
       };
     }
 
-    try {
-      const data = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8'));
-      return {
-        isInstalled: Boolean(data.installed),
-        requiresSetup: !data.installed,
-        supabaseConfigured: Boolean(data.supabaseConfigured || this.supabaseService.isConnected()),
-        installedAt: data.installedAt,
-        adminEmail: data.adminEmail
-      };
-    } catch {
-      return {
-        isInstalled: false,
-        requiresSetup: true,
-        supabaseConfigured: false
-      };
+    const tablesProbe = await this.supabaseService.getTablesStatus();
+    const hasAdmin = await this.repoService.hasAdminUser();
+
+    let setupData: any = {};
+    if (fs.existsSync(SETUP_FILE)) {
+      try {
+        setupData = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8'));
+      } catch {}
     }
+
+    const isInstalled = Boolean(tablesProbe.allReady && hasAdmin && setupData.installed);
+
+    return {
+      isInstalled,
+      requiresSetup: !isInstalled,
+      supabaseConfigured: true,
+      tablesReady: tablesProbe.allReady,
+      hasAdmin,
+      tablesStatus: tablesProbe.tables,
+      projectUrl: this.supabaseService.getPublicConfig().url,
+      projectRef: this.supabaseService.getProjectRef(),
+      installedAt: setupData.installedAt,
+      adminEmail: setupData.adminEmail
+    };
   }
 
-  public async completeSetup(payload: CompleteSetupPayload): Promise<{
+  public async connectSupabase(payload: ConnectSupabasePayload): Promise<{
+    success: boolean;
+    message: string;
+    projectRef: string;
+    tablesReady: boolean;
+    tablesStatus: any;
+  }> {
+    const creds: SupabaseCredentials = {
+      url: payload.url.trim().replace(/\/$/, ''),
+      anonKey: payload.anonKey.trim(),
+      serviceRoleKey: payload.serviceRoleKey?.trim() || undefined,
+      connectionString: payload.connectionString?.trim() || undefined
+    };
+
+    const res = await this.supabaseService.connect(creds);
+    if (!res.success) {
+      throw new Error(res.message);
+    }
+
+    const tablesProbe = await this.supabaseService.getTablesStatus();
+
+    return {
+      success: true,
+      message: res.message,
+      projectRef: res.projectRef,
+      tablesReady: tablesProbe.allReady,
+      tablesStatus: tablesProbe.tables
+    };
+  }
+
+  public async verifyTables(): Promise<{
+    tables: {
+      categories: boolean;
+      products: boolean;
+      orders: boolean;
+      users: boolean;
+      reviews: boolean;
+    };
+    allReady: boolean;
+  }> {
+    if (!this.supabaseService.isConnected()) {
+      throw new Error('Supabase is not connected.');
+    }
+    return this.supabaseService.getTablesStatus();
+  }
+
+  public async executeSql(sql: string, connectionString?: string): Promise<{ success: boolean; message: string; tablesReady: boolean }> {
+    if (!this.supabaseService.isConnected()) {
+      throw new Error('Supabase is not connected.');
+    }
+    const result = await this.supabaseService.executeSql(sql, connectionString);
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+    const tablesProbe = await this.supabaseService.getTablesStatus();
+    return {
+      success: true,
+      message: result.message,
+      tablesReady: tablesProbe.allReady
+    };
+  }
+
+  public async createAdmin(payload: CreateAdminPayload): Promise<{
     success: boolean;
     message: string;
     token: string;
     user: Omit<User, 'passwordHash'>;
   }> {
-    // 1. Guard against re-running wizard once installation is sealed
-    if (this.isInstalled()) {
-      throw new Error('System installation is already completed and permanently sealed.');
+    if (!this.supabaseService.isConnected()) {
+      throw new Error('Supabase is not connected. Connect Supabase before creating administrator.');
     }
 
-    let supabaseConnected = false;
+    const cleanEmail = payload.email.trim().toLowerCase();
+    const cleanName = payload.name.trim();
 
-    // 2. Connect Supabase if provided and not explicitly running sandbox mode
-    if (!payload.useSandbox && payload.supabase && payload.supabase.url && payload.supabase.anonKey) {
-      const creds: SupabaseCredentials = {
-        url: payload.supabase.url.trim().replace(/\/$/, ''),
-        anonKey: payload.supabase.anonKey.trim(),
-        serviceRoleKey: payload.supabase.serviceRoleKey?.trim() || undefined
-      };
-
-      const connectResult = await this.supabaseService.connect(creds);
-      if (!connectResult.success) {
-        throw new Error(`Supabase connection failed: ${connectResult.message}`);
-      }
-      supabaseConnected = true;
+    if (!cleanName || cleanName.length < 2) {
+      throw new Error('Administrator name must be at least 2 characters long.');
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('Valid administrator email address is required.');
+    }
+    if (!payload.password || payload.password.length < 6) {
+      throw new Error('Administrator password must be at least 6 characters long.');
     }
 
-    // 3. Provision Master Administrator account
-    const cleanEmail = payload.admin.email.trim().toLowerCase();
-    const cleanName = payload.admin.name.trim();
-    const passwordHash = await bcrypt.hash(payload.admin.password, 10);
+    const passwordHash = await bcrypt.hash(payload.password, 10);
 
     const adminUser = await this.repoService.upsertAdminUser({
       name: cleanName,
@@ -126,10 +206,8 @@ export class SetupService {
       passwordHash
     });
 
-    // 4. Generate immediate JWT session token
     const token = this.authService.generateToken(adminUser);
 
-    // 5. Seal installation state permanently
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
@@ -138,7 +216,7 @@ export class SetupService {
       installed: true,
       installedAt: new Date().toISOString(),
       adminEmail: cleanEmail,
-      supabaseConfigured: supabaseConnected
+      supabaseConfigured: true
     };
 
     fs.writeFileSync(SETUP_FILE, JSON.stringify(setupRecord, null, 2), 'utf8');
@@ -147,9 +225,24 @@ export class SetupService {
 
     return {
       success: true,
-      message: 'Onboarding setup completed. Admin console is initialized.',
+      message: 'Master administrator account created successfully. Setup is complete.',
       token,
       user: safeUser
     };
+  }
+
+  public async completeSetup(payload: {
+    supabase?: ConnectSupabasePayload;
+    admin: CreateAdminPayload;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    token: string;
+    user: Omit<User, 'passwordHash'>;
+  }> {
+    if (payload.supabase && payload.supabase.url && payload.supabase.anonKey) {
+      await this.connectSupabase(payload.supabase);
+    }
+    return this.createAdmin(payload.admin);
   }
 }

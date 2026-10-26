@@ -9,30 +9,13 @@ export class AuthService {
   private static instance: AuthService;
   private repo = RepositoryService.getInstance();
 
-  private constructor() {
-    this.ensureDefaultAdmin();
-  }
+  private constructor() {}
 
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
       AuthService.instance = new AuthService();
     }
     return AuthService.instance;
-  }
-
-  private async ensureDefaultAdmin(): Promise<void> {
-    const admin = await this.repo.getUserByEmail('admin@accessglobal.io');
-    if (!admin) {
-      const hash = await bcrypt.hash('AdminPass123!', 10);
-      await this.repo.createUser({
-        name: 'Super Admin',
-        email: 'admin@accessglobal.io',
-        role: 'admin',
-        status: 'active',
-        passwordHash: hash,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-      });
-    }
   }
 
   public generateToken(user: User): string {
@@ -81,16 +64,13 @@ export class AuthService {
       throw new Error('Invalid email or password.');
     }
 
-    if (user.passwordHash) {
-      const match = await bcrypt.compare(password, user.passwordHash);
-      if (!match) {
-        throw new Error('Invalid email or password.');
-      }
-    } else {
-      // Default demo password check if legacy seed
-      if (password !== 'admin' && password !== 'AdminPass123!') {
-        throw new Error('Invalid email or password.');
-      }
+    if (!user.passwordHash) {
+      throw new Error('Account security record corrupted. Please reset credentials.');
+    }
+
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) {
+      throw new Error('Invalid email or password.');
     }
 
     const token = this.generateToken(user);

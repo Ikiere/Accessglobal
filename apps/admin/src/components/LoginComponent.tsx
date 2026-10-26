@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   HiOutlineServer,
   HiOutlineLockClosed,
@@ -8,50 +8,75 @@ import {
   HiOutlineEye,
   HiOutlineEyeSlash,
   HiOutlineCircleStack,
+  HiOutlineCheckBadge,
+  HiOutlineXCircle,
 } from "react-icons/hi2";
-import { api, SetupStatus } from "../services/api";
+import { api } from "../services/api";
 
 export const LoginComponent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState<string>("admin@accessglobal.io");
-  const [password, setPassword] = useState<string>("AdminPass123!");
+  const stateData = (location.state as any) || {};
+  const [email, setEmail] = useState<string>(stateData.email || "");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingSetup, setCheckingSetup] = useState<boolean>(true);
 
-  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
-
+  // If system requires setup or Supabase is not connected, redirect directly to /setup!
   useEffect(() => {
     let mounted = true;
     api.getSetupStatus()
       .then((status) => {
-        if (mounted) setSetupStatus(status);
+        if (!mounted) return;
+        if (status.requiresSetup || !status.supabaseConfigured) {
+          navigate("/setup", { replace: true });
+          return;
+        }
+        setCheckingSetup(false);
       })
-      .catch((err) => console.warn("[LoginComponent] Could not check setup status:", err));
+      .catch((err) => {
+        console.warn("[LoginComponent] Could not verify setup status:", err);
+        setCheckingSetup(false);
+      });
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      await api.login(email.trim(), password);
-      // Navigate to previously requested path, or executive dashboard
-      const from = (location.state as any)?.from?.pathname || "/";
+      await api.login(email.trim().toLowerCase(), password);
+      // Navigate to intended destination or executive dashboard
+      const from = stateData?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || "Invalid credentials. Please verify your email and password.");
+      setError(err.message || "Invalid credentials. Please verify your administrator email and password.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center text-white px-4">
+        <div className="w-12 h-12 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin mb-4" />
+        <span className="text-xs font-mono text-gray-400">Verifying Supabase connection...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -67,7 +92,7 @@ export const LoginComponent: React.FC = () => {
               <HiOutlineServer className="text-2xl text-white" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white">
-              Executive Sign In
+              Administrator Sign In
             </h2>
             <p className="text-xs text-gray-400">
               AccessGlobal Enterprise Management Portal
@@ -75,32 +100,26 @@ export const LoginComponent: React.FC = () => {
 
             {/* Live Database Status Pill */}
             <div className="pt-1 flex items-center justify-center">
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium border ${
-                  setupStatus?.supabaseConfigured
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                    : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
-                }`}
-              >
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                 <HiOutlineCircleStack className="text-xs" />
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    setupStatus?.supabaseConfigured ? "bg-emerald-400 animate-pulse" : "bg-indigo-400"
-                  }`}
-                />
-                <span>
-                  {setupStatus?.supabaseConfigured
-                    ? "Supabase Realtime Cloud"
-                    : "Local Secure Sandbox"}
-                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Supabase Cloud (Single Source of Truth)</span>
               </span>
             </div>
           </div>
 
+          {/* Just Registered Notice */}
+          {stateData.justRegistered && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2.5">
+              <HiOutlineCheckBadge className="text-lg text-emerald-400 shrink-0" />
+              <span>Administrator account created! Please sign in with your credentials.</span>
+            </div>
+          )}
+
           {/* Error Banner */}
           {error && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+              <HiOutlineXCircle className="text-base text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -120,7 +139,7 @@ export const LoginComponent: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@accessglobal.io"
+                  placeholder="admin@yourdomain.com"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.1] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
                 />
               </div>
@@ -165,21 +184,6 @@ export const LoginComponent: React.FC = () => {
             <span>{loading ? "Authenticating Session..." : "Sign In to Admin Portal"}</span>
             <HiOutlineArrowRight className="text-sm" />
           </button>
-
-          {/* Onboarding Notice if uninstalled */}
-          {setupStatus?.requiresSetup && (
-            <div className="p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-center">
-              <span className="text-xs text-indigo-300 block mb-1">
-                First time installation detected
-              </span>
-              <Link
-                to="/setup"
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 underline"
-              >
-                Launch Onboarding Installation Wizard →
-              </Link>
-            </div>
-          )}
 
           {/* Footer note */}
           <div className="pt-2 text-center text-[11px] text-gray-500 border-t border-white/[0.06]">

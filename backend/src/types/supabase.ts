@@ -2,6 +2,8 @@ export interface SupabaseCredentials {
   url: string;
   anonKey: string;
   serviceRoleKey?: string;
+  connectionString?: string;
+  dbPassword?: string;
 }
 
 export interface SupabaseConfigStatus {
@@ -16,6 +18,7 @@ export interface SupabaseConfigStatus {
     users: boolean;
     reviews: boolean;
   };
+  allTablesReady?: boolean;
   lastChecked: string;
   error?: string;
 }

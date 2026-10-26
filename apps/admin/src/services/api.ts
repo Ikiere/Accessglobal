@@ -89,28 +89,44 @@ export interface SetupStatus {
   isInstalled: boolean;
   requiresSetup: boolean;
   supabaseConfigured: boolean;
+  tablesReady: boolean;
+  hasAdmin: boolean;
+  tablesStatus?: {
+    categories: boolean;
+    products: boolean;
+    orders: boolean;
+    users: boolean;
+    reviews: boolean;
+  };
+  projectUrl?: string;
+  projectRef?: string;
   installedAt?: string;
   adminEmail?: string;
 }
 
+export interface ConnectSupabaseParams {
+  url: string;
+  anonKey: string;
+  serviceRoleKey?: string;
+  connectionString?: string;
+}
+
+export interface CreateAdminParams {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface CompleteSetupParams {
-  supabase?: {
-    url: string;
-    anonKey: string;
-    serviceRoleKey?: string;
-  };
-  admin: {
-    name: string;
-    email: string;
-    password: string;
-  };
-  useSandbox?: boolean;
+  supabase?: ConnectSupabaseParams;
+  admin: CreateAdminParams;
 }
 
 export interface PublicSupabaseConfig {
   url: string;
   anonKey: string;
   isConfigured: boolean;
+  projectRef?: string;
 }
 
 class ApiService {
@@ -181,23 +197,45 @@ class ApiService {
     return this.request<SupabaseStatus>('/supabase/status');
   }
 
-  public async testSupabase(url: string, key: string): Promise<{ success: boolean; message: string }> {
-    return this.request<{ success: boolean; message: string }>('/supabase/test', {
+  public async testSupabase(url: string, key: string): Promise<{ success: boolean; message: string; projectRef?: string }> {
+    return this.request<{ success: boolean; message: string; projectRef?: string }>('/supabase/test', {
       method: 'POST',
       body: JSON.stringify({ url, key })
     });
   }
 
-  public async connectSupabase(creds: { url: string; anonKey: string; serviceRoleKey?: string }): Promise<{ success: boolean; message: string }> {
-    return this.request<{ success: boolean; message: string }>('/supabase/connect', {
+  public async connectSupabase(creds: ConnectSupabaseParams): Promise<{ success: boolean; message: string; projectRef?: string; tablesReady?: boolean; tablesStatus?: any }> {
+    return this.request<{ success: boolean; message: string; projectRef?: string; tablesReady?: boolean; tablesStatus?: any }>('/setup/connect-supabase', {
       method: 'POST',
       body: JSON.stringify(creds)
     });
   }
 
   public async disconnectSupabase(): Promise<{ success: boolean; message: string }> {
-    return this.request<{ success: boolean; message: string }>('/supabase/disconnect', {
+    const res = await this.request<{ success: boolean; message: string }>('/supabase/disconnect', {
       method: 'POST'
+    });
+    this.clearToken();
+    return res;
+  }
+
+  public async verifyTables(): Promise<{
+    tables: {
+      categories: boolean;
+      products: boolean;
+      orders: boolean;
+      users: boolean;
+      reviews: boolean;
+    };
+    allReady: boolean;
+  }> {
+    return this.request('/setup/verify-tables');
+  }
+
+  public async executeSql(sql: string, connectionString?: string): Promise<{ success: boolean; message: string; tablesReady?: boolean }> {
+    return this.request('/setup/execute-sql', {
+      method: 'POST',
+      body: JSON.stringify({ sql, connectionString })
     });
   }
 
@@ -333,6 +371,14 @@ class ApiService {
   // Setup / Onboarding
   public async getSetupStatus(): Promise<SetupStatus> {
     return this.request<SetupStatus>('/setup/status');
+  }
+
+  public async createAdmin(admin: CreateAdminParams): Promise<{ success: boolean; message: string; token: string; user: UserItem }> {
+    const res = await this.request<{ success: boolean; message: string; token: string; user: UserItem }>('/setup/create-admin', {
+      method: 'POST',
+      body: JSON.stringify(admin)
+    });
+    return res;
   }
 
   public async completeSetup(params: CompleteSetupParams): Promise<{ success: boolean; message: string; token: string; user: UserItem }> {

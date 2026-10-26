@@ -60,11 +60,11 @@ const Landing: React.FC = () => {
     };
   }, []);
 
-  const adminName = currentUser?.name || "Admin Ikiere";
-  const revenueTotal = stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : "128,450";
-  const ordersTotal = stats?.totalOrders || 1842;
-  const customersTotal = stats?.totalUsers || 4290;
-  const productsTotal = stats?.totalProducts || 124;
+  const adminName = currentUser?.name || "Administrator";
+  const revenueTotal = (stats?.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const ordersTotal = stats?.totalOrders ?? 0;
+  const customersTotal = stats?.totalUsers ?? 0;
+  const productsTotal = stats?.totalProducts ?? 0;
 
   const isSupabaseConnected = Boolean(supabaseStatus?.connected);
 
