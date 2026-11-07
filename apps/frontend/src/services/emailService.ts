@@ -158,14 +158,13 @@ class EmailService {
     }
 
     try {
-      const endpoint = '/api/resend/emails';
+      let response: Response | null = null;
 
-      let response: Response;
+      // 1. Primary: Serverless Relay endpoint
       try {
-        response = await fetch(endpoint, {
+        response = await fetch('/api/send-email', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -175,32 +174,64 @@ class EmailService {
             html: htmlContent,
           }),
         });
-      } catch {
-        // Direct fallback if proxy is bypassed
-        response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: fromEmail,
-            to: [targetRecipient],
-            subject: emailSubject,
-            html: htmlContent,
-          }),
-        });
+      } catch (relayErr) {
+        console.warn('[EmailService] Primary /api/send-email relay unreachable, attempting fallback:', relayErr);
       }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const rawMessage = errorData.message || `Resend error status ${response.status}`;
+      // 2. Secondary fallback: /api/resend
+      if (!response || !response.ok) {
+        try {
+          const fallbackResp = await fetch('/api/resend', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [targetRecipient],
+              subject: emailSubject,
+              html: htmlContent,
+            }),
+          });
+          if (fallbackResp.ok) {
+            response = fallbackResp;
+          }
+        } catch {
+          // continue to direct attempt if present
+        }
+      }
+
+      // 3. Direct Resend API attempt
+      if (!response || (!response.ok && response.status === 405)) {
+        try {
+          const directResp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [targetRecipient],
+              subject: emailSubject,
+              html: htmlContent,
+            }),
+          });
+          response = directResp;
+        } catch {
+          // direct call may be blocked by browser CORS
+        }
+      }
+
+      if (!response || !response.ok) {
+        const errorData = response ? await response.json().catch(() => ({})) : {};
+        const rawMessage = errorData.error || errorData.message || (response ? `Resend error status ${response.status}` : 'Email dispatch failed');
         console.warn('[EmailService] Resend API responded with error:', rawMessage);
 
         const isSandbox =
           rawMessage.toLowerCase().includes('only send testing emails') ||
           rawMessage.toLowerCase().includes('resend.com/domains') ||
-          response.status === 403;
+          (response && response.status === 403);
 
         return {
           success: false,
@@ -211,6 +242,7 @@ class EmailService {
       }
 
       const resData = await response.json().catch(() => ({}));
+      console.info('[EmailService] Resend OTP email dispatched successfully. ID:', resData.id);
       return {
         success: true,
         emailId: resData.id,
@@ -405,13 +437,13 @@ class EmailService {
       : `Order Confirmed: #${order.orderId} - AccessGlobal Network`;
 
     try {
-      const endpoint = '/api/resend/emails';
-      let response: Response;
+      let response: Response | null = null;
+
+      // 1. Primary: Serverless relay
       try {
-        response = await fetch(endpoint, {
+        response = await fetch('/api/send-email', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -421,25 +453,58 @@ class EmailService {
             html: htmlContent,
           }),
         });
-      } catch {
-        response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: fromEmail,
-            to: [targetRecipient],
-            subject: emailSubject,
-            html: htmlContent,
-          }),
-        });
+      } catch (relayErr) {
+        console.warn('[EmailService] Order email primary relay unreachable, attempting fallback:', relayErr);
       }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Resend error status ${response.status}`);
+      // 2. Secondary fallback: /api/resend
+      if (!response || !response.ok) {
+        try {
+          const fallbackResp = await fetch('/api/resend', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [targetRecipient],
+              subject: emailSubject,
+              html: htmlContent,
+            }),
+          });
+          if (fallbackResp.ok) {
+            response = fallbackResp;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // 3. Direct Resend API attempt
+      if (!response || (!response.ok && response.status === 405)) {
+        try {
+          const directResp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [targetRecipient],
+              subject: emailSubject,
+              html: htmlContent,
+            }),
+          });
+          response = directResp;
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!response || !response.ok) {
+        const errorData = response ? await response.json().catch(() => ({})) : {};
+        throw new Error(errorData.error || errorData.message || (response ? `Resend error status ${response.status}` : 'Order email dispatch failed'));
       }
 
       return { success: true };

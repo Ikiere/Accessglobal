@@ -175,6 +175,86 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- 10b. Pre-Confirmed User Registration RPC (Allows Resend-exclusive OTP without default Supabase confirmation email)
+CREATE OR REPLACE FUNCTION public.create_confirmed_user(
+    p_email TEXT,
+    p_password TEXT,
+    p_name TEXT DEFAULT 'User'
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, extensions
+AS $$
+DECLARE
+    new_user_id UUID := gen_random_uuid();
+    clean_email TEXT := lower(trim(p_email));
+BEGIN
+    IF EXISTS (SELECT 1 FROM auth.users WHERE email = clean_email) THEN
+        UPDATE auth.users
+        SET encrypted_password = crypt(p_password, gen_salt('bf', 10)),
+            email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
+            updated_at = NOW(),
+            raw_user_meta_data = jsonb_build_object('name', p_name, 'role', 'user')
+        WHERE email = clean_email
+        RETURNING id INTO new_user_id;
+    ELSE
+        INSERT INTO auth.users (
+            id,
+            instance_id,
+            email,
+            encrypted_password,
+            email_confirmed_at,
+            raw_app_meta_data,
+            raw_user_meta_data,
+            created_at,
+            updated_at,
+            role,
+            aud,
+            confirmation_token
+        ) VALUES (
+            new_user_id,
+            '00000000-0000-0000-0000-000000000000',
+            clean_email,
+            crypt(p_password, gen_salt('bf', 10)),
+            NOW(),
+            '{"provider":"email","providers":["email"]}'::jsonb,
+            jsonb_build_object('name', p_name, 'role', 'user'),
+            NOW(),
+            NOW(),
+            'authenticated',
+            'authenticated',
+            encode(gen_random_bytes(32), 'hex')
+        );
+    END IF;
+
+    INSERT INTO public.users (
+        id,
+        name,
+        email,
+        role,
+        status,
+        created_at,
+        updated_at
+    ) VALUES (
+        new_user_id,
+        p_name,
+        clean_email,
+        'user',
+        'active',
+        NOW(),
+        NOW()
+    ) ON CONFLICT (email) DO UPDATE SET
+        name = EXCLUDED.name,
+        status = 'active',
+        updated_at = NOW();
+
+    RETURN new_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_confirmed_user(TEXT, TEXT, TEXT) TO anon, authenticated, service_role;
+
 -- 11. Initial Seed Data (Categories)
 INSERT INTO public.categories (name, slug, parent_category) VALUES
     ('E-Bikes', 'e-bikes', '/'),

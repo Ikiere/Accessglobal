@@ -110,7 +110,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setMode('otp');
           setResendCooldown(30);
           if (res.emailResult?.success) {
-            setSuccessNotice(`A 6-digit confirmation code was sent to ${email.trim()} via Resend.`);
+            setSuccessNotice(`A 6-digit confirmation code was sent to ${email.trim()}.`);
             setSandboxCode(null);
           } else if (res.emailResult?.sandboxCode) {
             setSandboxCode(res.emailResult.sandboxCode);
@@ -142,7 +142,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const res = await api.resendOtp(email.trim(), name.trim());
       setResendCooldown(30);
       if (res.emailResult?.success) {
-        setSuccessNotice('A new 6-digit verification code was dispatched to your inbox via Resend.');
+        setSuccessNotice('A new 6-digit verification code was dispatched to your inbox.');
         setSandboxCode(null);
       } else if (res.emailResult?.sandboxCode) {
         setSandboxCode(res.emailResult.sandboxCode);
@@ -304,10 +304,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: '#124330', marginBottom: '4px' }}>
-                    <span>Resend Sandbox Delivery Policy</span>
+                    <span>Developer Sandbox Mode</span>
                   </div>
                   <p style={{ fontSize: '0.75rem', color: '#57625B', margin: '0 0 10px 0', lineHeight: 1.4 }}>
-                    Resend testing tier delivers live emails to the account owner (<strong>esoweibi@gmail.com</strong>). For instant testing with {email}, your security code is:
+                    Sandbox testing code for <strong>{email}</strong>:
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button

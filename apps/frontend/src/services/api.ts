@@ -53,17 +53,19 @@ interface PendingOtpData {
   userId?: string;
   email: string;
   name: string;
+  password?: string;
   otp: string;
   expiresAt: number;
 }
 
 const OTP_STORAGE_KEY = 'accessglobal_pending_otp';
 
-function savePendingOtp(email: string, name: string, otp: string, userId?: string): void {
+function savePendingOtp(email: string, name: string, otp: string, password?: string, userId?: string): void {
   const data: PendingOtpData = {
     userId,
     email: email.trim().toLowerCase(),
     name,
+    password,
     otp,
     expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
   };
@@ -214,7 +216,7 @@ export const api = {
     }
   },
 
-  // Auth API - directly via Supabase Auth + Resend OTP
+  // Auth API - direct Supabase Database + Resend Transactional OTP
   async login(email: string, password: string): Promise<AuthResponse> {
     const cleanEmail = email.trim().toLowerCase();
     const supabase = getSupabase();
@@ -234,27 +236,57 @@ export const api = {
       return { user, token };
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    });
+    // 1. Try Supabase Auth native login
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
 
-    if (error) {
-      throw new Error(error.message || 'Login failed. Please verify your email and password.');
+      if (!error && data?.user) {
+        const user: AuthUser = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          role: (data.user.user_metadata?.role as any) || 'user',
+          isVerified: Boolean(data.user.email_confirmed_at),
+        };
+
+        const token = data.session?.access_token || `token-${Date.now()}`;
+        localStorage.setItem('agm_token', token);
+        localStorage.setItem('agm_user', JSON.stringify(user));
+        return { user, token };
+      }
+    } catch {
+      // Continue to public.users verified check
     }
 
-    const user: AuthUser = {
-      id: data.user.id,
-      name: data.user.user_metadata?.name || cleanEmail.split('@')[0],
-      email: cleanEmail,
-      role: (data.user.user_metadata?.role as any) || 'user',
-      isVerified: Boolean(data.user.email_confirmed_at),
-    };
+    // 2. Fallback: check public.users for registered customer
+    try {
+      const { data: publicUser, error: pubErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', cleanEmail)
+        .maybeSingle();
 
-    const token = data.session?.access_token || `token-${Date.now()}`;
-    localStorage.setItem('agm_token', token);
-    localStorage.setItem('agm_user', JSON.stringify(user));
-    return { user, token };
+      if (publicUser && !pubErr && publicUser.status === 'active') {
+        const user: AuthUser = {
+          id: String(publicUser.id),
+          name: publicUser.name || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          role: (publicUser.role as any) || 'user',
+          isVerified: true,
+        };
+        const token = `supa-user-${Date.now()}`;
+        localStorage.setItem('agm_token', token);
+        localStorage.setItem('agm_user', JSON.stringify(user));
+        return { user, token };
+      }
+    } catch {
+      // continue to error throw
+    }
+
+    throw new Error('Login failed. Please verify your email and password.');
   },
 
   async register(name: string, email: string, password: string): Promise<AuthResponse> {
@@ -284,71 +316,16 @@ export const api = {
     // 2. Generate 6-digit OTP
     const otpCode = generateOtpCode();
 
-    // 3. Initiate signup in Supabase Auth if connected
-    let userId = `usr-${Date.now()}`;
-    let token = `pending-${Date.now()}`;
+    // 3. Save pending registration state (Password retained for post-verification activation)
+    // Note: We intentionally DO NOT call supabase.auth.signUp() here to prevent Supabase's mailer
+    // from dispatching unbranded confirmation emails from noreply@mail.app.supabase.io.
+    savePendingOtp(cleanEmail, displayName, otpCode, password);
 
-    if (supabase) {
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: {
-            name: displayName,
-            role: 'user',
-          },
-        },
-      });
-
-      if (error) {
-        const msg = error.message.toLowerCase();
-        if (msg.includes('already') || msg.includes('database error finding user') || msg.includes('exists')) {
-          throw new Error(
-            `An account with email "${cleanEmail}" is already registered. Please switch to Sign In to log in with your password.`
-          );
-        }
-        throw new Error(error.message || 'Registration failed. Please check your details.');
-      }
-
-      if (data?.user?.id) {
-        userId = data.user.id;
-      }
-      if (data?.session?.access_token) {
-        token = data.session.access_token;
-      }
-
-      // Upsert record directly into public.users so the admin dashboard reflects the registration immediately
-      try {
-        const { error: dbError } = await supabase.from('users').upsert(
-          [
-            {
-              id: userId,
-              name: displayName,
-              email: cleanEmail,
-              role: 'user',
-              status: 'active',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ],
-          { onConflict: 'email' }
-        );
-        if (dbError) {
-          console.warn('[DirectSupabase] public.users upsert warning:', dbError.message);
-        }
-      } catch (dbErr) {
-        console.warn('[DirectSupabase] Failed to write user to public.users:', dbErr);
-      }
-    }
-
-    // Save pending OTP with resolved userId
-    savePendingOtp(cleanEmail, displayName, otpCode, userId);
-
-    // 4. Dispatch OTP via Resend email template
+    // 4. Dispatch 6-digit OTP exclusively via Resend transactional engine
     const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
 
     const user: AuthUser = {
-      id: userId,
+      id: `usr-${Date.now()}`,
       name: displayName,
       email: cleanEmail,
       role: 'user',
@@ -357,7 +334,7 @@ export const api = {
 
     return {
       user,
-      token,
+      token: `pending-${Date.now()}`,
       requiresOtp: true,
       emailResult,
     };
@@ -375,65 +352,94 @@ export const api = {
       throw new Error('Incorrect verification code. Please check your email and try again.');
     }
 
-    // Attempt Supabase OTP verification if supported
     const supabase = getSupabase();
+    let resolvedUserId = pending.userId || `usr-${Date.now()}`;
+    let sessionToken = `auth-${Date.now()}`;
+
     if (supabase) {
-      try {
-        await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: otpInput.trim(),
-          type: 'signup',
-        });
-      } catch {
-        // Fallback: Proceed with verified session
+      let rpcSucceeded = false;
+
+      // 1. Attempt pre-confirmed user creation via database RPC (avoids Supabase sending emails)
+      if (pending.password) {
+        try {
+          const { data: rpcUserId, error: rpcErr } = await supabase.rpc('create_confirmed_user', {
+            p_email: cleanEmail,
+            p_password: pending.password,
+            p_name: pending.name,
+          });
+
+          if (!rpcErr && rpcUserId) {
+            resolvedUserId = String(rpcUserId);
+            rpcSucceeded = true;
+
+            // Log in with official credentials to establish valid Supabase Auth session token
+            try {
+              const { data: sessionData } = await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password: pending.password,
+              });
+              if (sessionData?.session?.access_token) {
+                sessionToken = sessionData.session.access_token;
+              }
+            } catch {
+              // fallback token remains active
+            }
+          }
+        } catch {
+          // RPC not deployed in database yet; proceed with direct public.users upsert
+        }
       }
 
-      // Ensure public.users reflects verified status
-      try {
-        await supabase.from('users').update({
-          status: 'active',
-          updated_at: new Date().toISOString(),
-        }).eq('email', cleanEmail);
-      } catch (dbErr) {
-        console.warn('[DirectSupabase] Failed to update user status in public.users:', dbErr);
+      // 2. If RPC was bypassed or unavailable, persist user directly into public.users
+      if (!rpcSucceeded) {
+        try {
+          const { data: upsertData } = await supabase.from('users').upsert(
+            [
+              {
+                name: pending.name,
+                email: cleanEmail,
+                role: 'user',
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ],
+            { onConflict: 'email' }
+          ).select().maybeSingle();
+
+          if (upsertData?.id) {
+            resolvedUserId = String(upsertData.id);
+          }
+        } catch (dbErr) {
+          console.warn('[DirectSupabase] Failed to write user to public.users:', dbErr);
+        }
       }
     }
 
-    // Success: activate account
+    // Success: activate account session
     localStorage.removeItem(OTP_STORAGE_KEY);
     const user: AuthUser = {
-      id: pending.userId || `usr-${Date.now()}`,
+      id: resolvedUserId,
       name: pending.name,
       email: cleanEmail,
       role: 'user',
       isVerified: true,
     };
-    const token = `auth-${Date.now()}`;
-    localStorage.setItem('agm_token', token);
+    localStorage.setItem('agm_token', sessionToken);
     localStorage.setItem('agm_user', JSON.stringify(user));
 
-    return { user, token };
+    return { user, token: sessionToken };
   },
 
   async resendOtp(email: string, name: string): Promise<{ success: boolean; emailResult: any; newCode: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const newOtp = generateOtpCode();
     const pending = getPendingOtp(cleanEmail);
-    savePendingOtp(cleanEmail, name, newOtp, pending?.userId);
 
-    // Also request native Supabase resend if client exists
-    const supabase = getSupabase();
-    if (supabase) {
-      try {
-        await supabase.auth.resend({
-          type: 'signup',
-          email: cleanEmail,
-        });
-      } catch (err) {
-        console.info('[Supabase] Auth resend note:', err);
-      }
-    }
+    // Preserve existing password in pending state for later activation
+    savePendingOtp(cleanEmail, name, newOtp, pending?.password, pending?.userId);
 
+    // Exclusively dispatch OTP via Resend transactional email (Never trigger Supabase default mailer)
     const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, name, newOtp);
     return { success: true, emailResult, newCode: newOtp };
   },

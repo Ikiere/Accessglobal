@@ -85,7 +85,7 @@ const DOC_TOPICS: DocTopic[] = [
     category: "Security & Authentication",
     title: "OTP Security Architecture & Admin Access Control",
     badge: "Security Standard",
-    summary: "Passwordless customer sign-in via Resend email OTP and administrative role enforcement via Supabase Auth.",
+    summary: "Secure customer sign-in with 6-digit email OTP and administrative role enforcement via Supabase Auth.",
     content: [
       "Storefront Customer Authentication utilizes one-time email passcodes (OTP) dispatched through Resend API. This eliminates vulnerable shared passwords while ensuring verified email ownership.",
       "In development/testing environments, security OTP codes are auto-routed to the verified development address (esoweibi@gmail.com) and surfaced with 1-click UI auto-fill to prevent third-party email delivery blocks.",
