@@ -144,6 +144,13 @@ function AppContent() {
         onToggleMobileMenu={() => setMobileMenuOpen(true)}
         onOpenSearch={() => navigate('/shop')}
         currentUser={currentUser}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenAuth={(mode) => {
+          setAuthMode(mode);
+          setAuthModalOpen(true);
+        }}
+        onLogout={handleLogout}
+        cartCount={totalCartCount}
       />
 
       {/* Main Multi-Page Route Outlet */}

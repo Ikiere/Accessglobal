@@ -25,6 +25,15 @@ export interface OrderConfirmationData {
   createdAt: string;
 }
 
+export interface EmailSendResult {
+  success: boolean;
+  emailId?: string;
+  isSandboxRestriction?: boolean;
+  error?: string;
+  sandboxCode?: string;
+  simulated?: boolean;
+}
+
 class EmailService {
   private getApiKey(): string {
     return (
@@ -48,7 +57,7 @@ class EmailService {
     email: string,
     name: string,
     otpCode: string
-  ): Promise<{ success: boolean; simulated?: boolean; error?: string }> {
+  ): Promise<EmailSendResult> {
     const apiKey = this.getApiKey();
     const fromEmail = this.getFromEmail();
 
@@ -139,34 +148,75 @@ class EmailService {
       );
       console.info(`To: ${email}`);
       console.info(`OTP Code: ${otpCode}`);
-      return { success: true, simulated: true };
+      return { success: true, simulated: true, sandboxCode: otpCode };
     }
 
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [email],
-          subject: `Your AccessGlobal Verification Code: ${otpCode}`,
-          html: htmlContent,
-        }),
-      });
+      let endpoint = '/api/resend/emails';
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        endpoint = 'https://api.resend.com/emails';
+      }
+
+      let response: Response;
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [email],
+            subject: `Your AccessGlobal Verification Code: ${otpCode}`,
+            html: htmlContent,
+          }),
+        });
+      } catch {
+        // Fallback to direct Resend endpoint
+        response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [email],
+            subject: `Your AccessGlobal Verification Code: ${otpCode}`,
+            html: htmlContent,
+          }),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Resend error status ${response.status}`);
+        const rawMessage = errorData.message || `Resend error status ${response.status}`;
+        console.warn('[EmailService] Resend API responded with error:', rawMessage);
+
+        const isSandbox =
+          rawMessage.toLowerCase().includes('only send testing emails') ||
+          rawMessage.toLowerCase().includes('resend.com/domains') ||
+          response.status === 403;
+
+        return {
+          success: false,
+          isSandboxRestriction: isSandbox,
+          error: rawMessage,
+          sandboxCode: otpCode,
+        };
       }
 
-      return { success: true };
+      const resData = await response.json().catch(() => ({}));
+      return { success: true, emailId: resData.id };
     } catch (err: any) {
       console.warn('[EmailService] Failed to send OTP via Resend:', err.message);
-      // Fallback gracefully so registration does not hang
-      return { success: false, error: err.message, simulated: true };
+      return {
+        success: false,
+        isSandboxRestriction: true,
+        error: err.message,
+        sandboxCode: otpCode,
+      };
     }
   }
 

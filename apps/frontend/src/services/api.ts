@@ -29,6 +29,7 @@ export interface AuthResponse {
   user: AuthUser;
   token: string;
   requiresOtp?: boolean;
+  emailResult?: any;
 }
 
 export interface ApiOrderPayload {
@@ -224,7 +225,7 @@ export const api = {
     savePendingOtp(cleanEmail, displayName, otpCode);
 
     // 2. Dispatch OTP via Resend email template
-    await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
+    const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
 
     // 3. Initiate signup in Supabase Auth if connected
     let userId = `usr-${Date.now()}`;
@@ -268,6 +269,7 @@ export const api = {
       user,
       token,
       requiresOtp: true,
+      emailResult,
     };
   },
 
@@ -313,12 +315,26 @@ export const api = {
     return { user, token };
   },
 
-  async resendOtp(email: string, name: string): Promise<{ success: boolean }> {
+  async resendOtp(email: string, name: string): Promise<{ success: boolean; emailResult: any; newCode: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const newOtp = generateOtpCode();
     savePendingOtp(cleanEmail, name, newOtp);
-    await emailService.sendOtpVerificationEmail(cleanEmail, name, newOtp);
-    return { success: true };
+
+    // Also request native Supabase resend if client exists
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        await supabase.auth.resend({
+          type: 'signup',
+          email: cleanEmail,
+        });
+      } catch (err) {
+        console.info('[Supabase] Auth resend note:', err);
+      }
+    }
+
+    const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, name, newOtp);
+    return { success: true, emailResult, newCode: newOtp };
   },
 
   getCurrentUser(): AuthUser | null {

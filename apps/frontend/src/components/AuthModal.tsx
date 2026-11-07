@@ -24,12 +24,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [sandboxCode, setSandboxCode] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     setMode(initialMode);
     setErrorMessage(null);
     setSuccessNotice(null);
+    setSandboxCode(null);
   }, [initialMode, isOpen]);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setShowPassword(false);
       setErrorMessage(null);
       setSuccessNotice(null);
+      setSandboxCode(null);
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,7 +109,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (res.requiresOtp) {
           setMode('otp');
           setResendCooldown(30);
-          setSuccessNotice(`A 6-digit verification code has been dispatched to ${email.trim()}.`);
+          if (res.emailResult?.success) {
+            setSuccessNotice(`A 6-digit confirmation code was sent to ${email.trim()} via Resend.`);
+            setSandboxCode(null);
+          } else if (res.emailResult?.sandboxCode) {
+            setSandboxCode(res.emailResult.sandboxCode);
+            setSuccessNotice(null);
+          } else {
+            setSuccessNotice(`A 6-digit verification code has been generated for ${email.trim()}.`);
+          }
         } else {
           onSuccess(res.user?.name || displayName, true);
           onClose();
@@ -128,9 +139,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     setErrorMessage(null);
     try {
-      await api.resendOtp(email.trim(), name.trim());
-      setResendCooldown(45);
-      setSuccessNotice('A new 6-digit verification code was dispatched to your email.');
+      const res = await api.resendOtp(email.trim(), name.trim());
+      setResendCooldown(30);
+      if (res.emailResult?.success) {
+        setSuccessNotice('A new 6-digit verification code was dispatched to your inbox via Resend.');
+        setSandboxCode(null);
+      } else if (res.emailResult?.sandboxCode) {
+        setSandboxCode(res.emailResult.sandboxCode);
+        setSuccessNotice('A new verification code was generated.');
+      } else {
+        setSuccessNotice('A new 6-digit verification code was generated.');
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to resend code. Please try again.');
     } finally {
@@ -248,6 +267,50 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {mode === 'otp' ? (
             <div>
+              {sandboxCode && (
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    backgroundColor: '#FBF8F3',
+                    border: '1px solid #E5DAC9',
+                    borderRadius: 'var(--radius-2)',
+                    marginBottom: '14px',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: '#124330', marginBottom: '4px' }}>
+                    <span>Resend Sandbox Delivery Policy</span>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#57625B', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                    Resend testing tier delivers live emails to the account owner (<strong>esoweibi@gmail.com</strong>). For instant testing with {email}, your security code is:
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setOtpInput(sandboxCode)}
+                      style={{
+                        fontFamily: 'monospace, "IBM Plex Mono"',
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        color: '#124330',
+                        backgroundColor: '#E9F2ED',
+                        border: '1px solid rgba(18,67,48,0.25)',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        letterSpacing: '3px',
+                        cursor: 'pointer',
+                      }}
+                      title="Click to auto-fill code"
+                    >
+                      {sandboxCode}
+                    </button>
+                    <span style={{ fontSize: '0.75rem', color: '#124330', fontWeight: 600 }}>
+                      ← Click to fill code
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '8px', textAlign: 'center' }}>
                 6-Digit Security Code
               </label>
