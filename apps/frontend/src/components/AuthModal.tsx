@@ -1,304 +1,242 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { IconClose, IconUser, IconShieldCheck } from './icons';
 
 interface AuthModalProps {
   isOpen: boolean;
-  initialMode: 'login' | 'signup';
+  initialMode?: 'login' | 'signup';
   onClose: () => void;
-  onSuccess: (userName: string, isSignUp: boolean) => void;
+  onSuccess: (name: string, isSignUp: boolean) => void;
 }
 
-export const AuthModal = ({
+export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
-  initialMode,
+  initialMode = 'login',
   onClose,
   onSuccess,
-}: AuthModalProps) => {
+}) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [error, setError] = useState('');
-
-  const fullNameInputRef = useRef<HTMLInputElement>(null);
-  const emailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMode(initialMode);
-    setError('');
-  }, [initialMode, isOpen]);
+  }, [initialMode]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      const timer = setTimeout(() => {
-        if (mode === 'signup') {
-          fullNameInputRef.current?.focus();
-        } else {
-          emailInputRef.current?.focus();
-        }
-      }, 350);
-      return () => clearTimeout(timer);
     } else {
       document.body.style.overflow = '';
+      setName('');
+      setEmail('');
+      setPassword('');
+      setShowPassword(false);
     }
-  }, [isOpen, mode]);
 
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
   }, [isOpen, onClose]);
 
-  // Calculate password strength score: 0 to 4
-  const passwordScore =
-    (password.length >= 8 ? 1 : 0) +
-    (/\d/.test(password) ? 1 : 0) +
-    (/[A-Z]/.test(password) ? 1 : 0) +
-    (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
-
-  const meterColors = ['#ff8da1', '#ff8da1', '#ffb21e', '#3ee6b0', '#3ee6b0'];
-  const meterWidth = `${passwordScore * 25}%`;
-  const meterColor = meterColors[passwordScore] || '#ff8da1';
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const nameTrimmed = fullName.trim();
-    const emailTrimmed = email.trim();
+    if (!email.trim() || !password.trim()) return;
 
-    if (mode === 'signup' && nameTrimmed.length < 2) {
-      setError('Enter your full name.');
-      return;
-    }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTrimmed)) {
-      setError('Enter a valid email address, like you@email.com.');
-      return;
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-    if (mode === 'signup' && !agreeTerms) {
-      setError('Accept the Terms and Privacy Policy to continue.');
-      return;
-    }
-
-    const calculatedUser = (nameTrimmed || emailTrimmed.split('@')[0]).split(' ')[0];
-    onSuccess(calculatedUser, mode === 'signup');
-
-    // Reset fields
-    setFullName('');
-    setEmail('');
-    setPassword('');
-    setAgreeTerms(false);
-    setError('');
-  };
-
-  const copy = {
-    login: {
-      title: 'Welcome back',
-      lead: 'Log in to see your orders and saved items.',
-      button: 'Log in',
-      autoComplete: 'current-password',
-    },
-    signup: {
-      title: 'Create your account',
-      lead: 'Join free and get 10% off your first order.',
-      button: 'Create account',
-      autoComplete: 'new-password',
-    },
+    const displayName = mode === 'signup' && name.trim() ? name.trim() : email.split('@')[0];
+    onSuccess(displayName, mode === 'signup');
+    onClose();
   };
 
   return (
     <div
-      className={`auth ${isOpen ? 'on' : ''}`}
-      id="auth"
-      data-m={mode}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="at"
+      aria-labelledby="auth-modal-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 65,
+        backgroundColor: 'rgba(18, 21, 22, 0.55)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 'var(--space-4)',
+      }}
+      onClick={onClose}
     >
-      <div className="as">
-        <a
-          href="#"
-          className="logo"
-          id="alogo"
-          onClick={(e) => {
-            e.preventDefault();
-            onClose();
-          }}
+      <div
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-3)',
+          maxWidth: '440px',
+          width: '100%',
+          boxShadow: 'var(--shadow-overlay)',
+          padding: 'var(--space-8)',
+          position: 'relative',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          aria-label="Close authentication modal"
+          className="btn-subtle"
+          style={{ position: 'absolute', top: '16px', right: '16px', padding: '8px' }}
         >
-          AGM<b>.</b>
-        </a>
-        <span className="float" style={{ right: '12%', top: '12%' }}>
-          <img
-            src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&auto=format&fit=crop&q=80"
-            alt="Electric bike"
-            loading="lazy"
-          />
-        </span>
-        <span
-          className="float"
-          style={{ left: '12%', top: '40%', animationDelay: '-2s' }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&auto=format&fit=crop&q=80"
-            alt="Fashion clothes"
-            loading="lazy"
-          />
-        </span>
-        <span
-          className="float"
-          style={{ right: '18%', bottom: '14%', animationDelay: '-4s' }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=80"
-            alt="Sneakers"
-            loading="lazy"
-          />
-        </span>
-        <p>
-          One account. <b>Every aisle</b> in the world.
-        </p>
-      </div>
-
-      <div className="af">
-        <button className="x" id="ax" aria-label="Close" onClick={onClose}>
-          ✕
+          <IconClose size={20} />
         </button>
 
-        <div className="sw" role="tablist">
-          <button
-            role="tab"
-            data-m="login"
-            aria-selected={mode === 'login'}
-            onClick={() => {
-              setMode('login');
-              setError('');
+        {/* Modal Header */}
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-round)',
+              backgroundColor: 'var(--color-accent-soft)',
+              color: 'var(--color-accent)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 'var(--space-3)',
             }}
           >
-            Log in
-          </button>
-          <button
-            role="tab"
-            data-m="signup"
-            aria-selected={mode === 'signup'}
-            onClick={() => {
-              setMode('signup');
-              setError('');
-            }}
-          >
-            Sign up
-          </button>
+            <IconUser size={22} />
+          </div>
+          <h2 id="auth-modal-title" style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-ink)' }}>
+            {mode === 'login' ? 'Sign in to AccessGlobal' : 'Create your buyer account'}
+          </h2>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', marginTop: '4px' }}>
+            {mode === 'login'
+              ? 'Access saved workshop orders and tracking'
+              : 'Receive 10% off your first international shipment'}
+          </p>
         </div>
 
-        <h2 id="at">{copy[mode].title}</h2>
-        <p className="lead" id="ap">
-          {copy[mode].lead}
-        </p>
-
-        <form id="afm" noValidate onSubmit={handleSubmit}>
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {mode === 'signup' && (
-            <label className="fn">
-              Full name
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+                Full Name
+              </label>
               <input
-                ref={fullNameInputRef}
                 type="text"
-                id="fn"
-                autoComplete="name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </label>
-          )}
-
-          <label>
-            Email
-            <input
-              ref={emailInputRef}
-              type="email"
-              id="em"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Password
-            <div className="pw">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="pw"
-                autoComplete={copy[mode].autoComplete}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                id="eye"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </label>
-
-          {mode === 'signup' && (
-            <div className="meter fn" id="meter">
-              <i
+                required
+                placeholder="e.g. Henrik Lindqvist"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 style={{
-                  width: meterWidth,
-                  background: meterColor,
+                  width: '100%',
+                  padding: '9px 12px',
+                  border: '1px solid var(--color-line-strong)',
+                  borderRadius: 'var(--radius-1)',
+                  fontSize: 'var(--text-body-sm)',
                 }}
               />
             </div>
           )}
 
-          {mode === 'signup' && (
-            <label className="chk fn">
-              <input
-                type="checkbox"
-                id="tc"
-                checked={agreeTerms}
-                onChange={(e) => setAgreeTerms(e.target.checked)}
-              />
-              I agree to the Terms and Privacy Policy
+          <div>
+            <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+              Email Address
             </label>
-          )}
-
-          <div className="err" id="err" role="alert">
-            {error}
+            <input
+              type="email"
+              required
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                border: '1px solid var(--color-line-strong)',
+                borderRadius: 'var(--radius-1)',
+                fontSize: 'var(--text-body-sm)',
+              }}
+            />
           </div>
 
-          <button className="btn p full" id="sub" type="submit">
-            {copy[mode].button}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label style={{ fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)' }}>
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              required
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                border: '1px solid var(--color-line-strong)',
+                borderRadius: 'var(--radius-1)',
+                fontSize: 'var(--text-body-sm)',
+              }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: 'var(--text-body)', marginTop: 'var(--space-2)' }}
+          >
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="or">or continue with</div>
-        <div className="soc">
-          <button
-            type="button"
-            onClick={() => {
-              onSuccess('Google User', false);
-            }}
-          >
-            Google
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onSuccess('Apple User', false);
-            }}
-          >
-            Apple
-          </button>
+        {/* Switch Mode */}
+        <div style={{ textAlign: 'center', marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-line)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
+          {mode === 'login' ? (
+            <>
+              First time at AccessGlobal?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
+              >
+                Create an account
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
+              >
+                Sign in
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Privacy Note */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center', marginTop: 'var(--space-4)', fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}>
+          <IconShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
+          <span>No spam. Only essential order and customs updates.</span>
         </div>
       </div>
     </div>

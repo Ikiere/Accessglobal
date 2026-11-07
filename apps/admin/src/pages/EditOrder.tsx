@@ -172,21 +172,21 @@ const EditOrder = () => {
                   <div className="mt-4 flex flex-col gap-5 max-[450px]:items-start">
                     <div className="flex justify-between items-center max-[450px]:flex-col">
                       <div className="flex items-center gap-3 max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (1).jpg" alt="product" className="w-12 h-12" />
+                      <img src="/src/assets/tablet (1).jpg" alt="Samsung Galaxy Tab 7" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
                       <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 7</span>
                       </div>
                       <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 2</span>
                     </div>
                     <div className="flex justify-between items-center max-[450px]:flex-col">
                       <div className="flex items-center gap-3  max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (2).jpg" alt="product" className="w-12 h-12" />
+                      <img src="/src/assets/tablet (2).jpg" alt="Samsung Galaxy Tab 8" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
                       <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 8</span>
                       </div>
                       <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 1</span>
                     </div>
                     <div className="flex justify-between items-center max-[450px]:flex-col">
                       <div className="flex items-center gap-3  max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (3).jpg" alt="product" className="w-12 h-12" />
+                      <img src="/src/assets/tablet (3).jpg" alt="Samsung Galaxy Tab 9" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
                       <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 9</span>
                       </div>
                       <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 1</span>

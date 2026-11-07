@@ -321,17 +321,13 @@ export const OnboardingWizard: React.FC = () => {
     : "https://supabase.com/dashboard";
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center py-10 px-4 sm:px-6 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[400px] h-[300px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center py-10 px-4 sm:px-6 relative selection:bg-[#124330] selection:text-white">
       {/* Main Container */}
       <div className="w-full max-w-3xl relative z-10">
         
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-medium mb-3">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#124330]/20 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium mb-3">
             <HiOutlineShieldCheck className="text-sm" />
             <span>Enterprise Installation Wizard · Zero Hacker Exposure</span>
           </div>
@@ -434,7 +430,7 @@ export const OnboardingWizard: React.FC = () => {
         </div>
 
         {/* Wizard Main Card */}
-        <div className="bg-[#0b0e14]/90 border border-white/[0.08] rounded-3xl p-6 sm:p-10 backdrop-blur-2xl shadow-2xl relative">
+        <div className="bg-[#0b0e14] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-2xl relative">
           
           {/* ========================================================================= */}
           {/* STEP 1: CONNECT SUPABASE                                                  */}
@@ -601,7 +597,7 @@ export const OnboardingWizard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isConnecting || !projectUrl || !anonKey}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white text-xs font-semibold border border-[#124330] flex items-center justify-center gap-2 transition-all disabled:opacity-40"
                 >
                   <span>{isConnecting ? "Encrypting & Connecting..." : "Save & Proceed to Tables"}</span>
                   <HiOutlineArrowRight className="text-sm" />
@@ -762,7 +758,7 @@ export const OnboardingWizard: React.FC = () => {
                     type="button"
                     disabled={!allTablesReady}
                     onClick={() => setCurrentStep(3)}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white text-xs font-semibold border border-[#124330] flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <span>Proceed to Admin Account</span>
                     <HiOutlineArrowRight className="text-sm" />
@@ -901,7 +897,7 @@ export const OnboardingWizard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isCreatingAdmin || adminCreatedSuccess}
-                  className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                  className="w-full sm:w-auto px-7 py-3 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white text-xs font-semibold border border-[#124330] flex items-center justify-center gap-2 transition-all disabled:opacity-40"
                 >
                   <span>{isCreatingAdmin ? "Saving to Supabase..." : "Create Admin Account & Finalize Setup"}</span>
                   <HiOutlineArrowRight className="text-sm" />

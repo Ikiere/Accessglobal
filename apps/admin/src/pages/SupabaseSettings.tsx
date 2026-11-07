@@ -275,7 +275,7 @@ export const SupabaseSettings: React.FC = () => {
                 Supabase Service Role Key <span className="text-xs text-emerald-400 font-normal">(Recommended for full admin CRUD)</span>
               </label>
               <p className="text-xs dark:text-gray-400 text-gray-500 mb-2">
-                🔒 Safe Storage: This secret key is encrypted immediately on the backend with AES-256-GCM. It is never transmitted back to the browser.
+                Safe Storage: This secret key is encrypted immediately on the backend with AES-256-GCM. It is never transmitted back to the browser.
               </p>
               <input
                 type="password"

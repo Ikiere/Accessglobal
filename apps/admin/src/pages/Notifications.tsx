@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { HiOutlineCheck, HiOutlineBell, HiOutlineChevronRight } from "react-icons/hi2";
 import { SimpleNotification, Sidebar } from "../components";
 import { Link } from "react-router-dom";
 
 const Notifications: React.FC = () => {
+  const [allRead, setAllRead] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0a0e17] text-gray-900 dark:text-gray-100 transition-colors">
       <Sidebar />
@@ -13,7 +15,7 @@ const Notifications: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-200/80 dark:border-white/[0.08]">
           <div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-              <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              <Link to="/" className="hover:text-[#124330] dark:hover:text-emerald-400 transition-colors">
                 Dashboard
               </Link>
               <HiOutlineChevronRight className="text-xs" />
@@ -28,11 +30,11 @@ const Notifications: React.FC = () => {
           </div>
 
           <button
-            onClick={() => alert("All notifications marked as read")}
+            onClick={() => setAllRead(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-300 font-semibold text-xs border border-gray-200 dark:border-white/[0.08] transition-all shadow-sm"
           >
             <HiOutlineCheck className="text-base text-emerald-500" />
-            <span>Mark All as Read</span>
+            <span>{allRead ? "All Items Marked Read" : "Mark All as Read"}</span>
           </button>
         </div>
 

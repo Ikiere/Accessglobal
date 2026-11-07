@@ -93,11 +93,11 @@ const OrderTable: React.FC = () => {
               >
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-3.5">
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-violet-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs ring-1 ring-indigo-500/30 flex-shrink-0">
+                    <div className="h-9 w-9 rounded-xl bg-[#124330]/10 text-[#124330] dark:text-emerald-400 flex items-center justify-center font-bold font-mono text-xs border border-[#124330]/20 flex-shrink-0">
                       {item.customerName ? item.customerName.slice(0, 2).toUpperCase() : "AG"}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 dark:text-white line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      <div className="font-semibold text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#124330] dark:group-hover:text-emerald-400 transition-colors">
                         {item.customerName || "Verified Buyer"}
                       </div>
                       <div className="text-[11px] font-mono text-gray-500 dark:text-gray-400 mt-0.5">

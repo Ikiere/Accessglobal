@@ -1,91 +1,194 @@
+import React from 'react';
+import { IconCart, IconUser, IconMenu, IconSearch } from './icons';
+
 interface NavbarProps {
   cartCount: number;
-  cartBump: boolean;
   currentUser: string | null;
   onOpenAuth: (mode: 'login' | 'signup') => void;
+  onOpenDashboard: () => void;
   onCartClick: () => void;
-  mobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
+  onSelectCategory: (category: string) => void;
+  onOpenSearch: () => void;
 }
 
-export const Navbar = ({
+export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
-  cartBump,
   currentUser,
   onOpenAuth,
+  onOpenDashboard,
   onCartClick,
-  mobileMenuOpen,
   onToggleMobileMenu,
-}: NavbarProps) => {
+  onSelectCategory,
+  onOpenSearch,
+}) => {
   return (
-    <nav>
-      <a href="#" className="logo">
-        AGM<b>.</b>
-      </a>
-      <ul>
-        <li>
-          <a href="#shop">Categories</a>
-        </li>
-        <li>
-          <a href="#products">Trending</a>
-        </li>
-        <li>
-          <a href="#deal">Deals</a>
-        </li>
-        <li>
-          <a href="#help">Support</a>
-        </li>
-      </ul>
-      <div className="nr">
-        {currentUser ? (
+    <header className="site-header hairline-bottom" style={{ backgroundColor: 'var(--color-surface)', position: 'sticky', top: 0, zIndex: 40 }}>
+      <div className="wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '68px' }}>
+        
+        {/* Brand / Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
           <button
-            className="lnk"
-            id="lnk"
-            onClick={() => onOpenAuth('login')}
-            style={{ fontWeight: 600, color: 'var(--sun)' }}
+            onClick={() => onSelectCategory('All')}
+            style={{ textAlign: 'left', display: 'flex', flexDirection: 'column' }}
+            aria-label="AccessGlobal Market Home"
           >
-            Hi, {currentUser}
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--color-ink)', lineHeight: 1 }}>
+              AccessGlobal
+            </span>
+            <span style={{ fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, marginTop: '2px' }}>
+              Curated Market
+            </span>
           </button>
-        ) : (
-          <>
+
+          {/* Desktop Navigation */}
+          <nav className="desktop-nav" aria-label="Primary Aisles" style={{ display: 'none', gap: 'var(--space-5)', marginLeft: 'var(--space-4)' }}>
             <button
-              className="lnk"
-              data-auth="login"
-              id="lnk"
+              onClick={() => onSelectCategory('E-Bikes')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              E-Bikes
+            </button>
+            <button
+              onClick={() => onSelectCategory('Clothing')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              Apparel
+            </button>
+            <button
+              onClick={() => onSelectCategory('Shoes')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              Footwear
+            </button>
+            <button
+              onClick={() => onSelectCategory('Appliances')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              Living & Kitchen
+            </button>
+            <button
+              onClick={() => onSelectCategory('Perfumes')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              Fragrances
+            </button>
+            <a
+              href="#standard"
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+            >
+              The Standard
+            </a>
+          </nav>
+        </div>
+
+        {/* Action Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {/* Quick Search Button */}
+          <button
+            onClick={onOpenSearch}
+            className="btn-subtle"
+            aria-label="Search Collection"
+            style={{ padding: '8px 10px', color: 'var(--color-ink)' }}
+            title="Search products"
+          >
+            <IconSearch size={19} />
+          </button>
+
+          {/* User Account / Auth / Dashboard */}
+          {currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <button
+                onClick={onOpenDashboard}
+                className="chip chip-accent"
+                title="Manage account, view shipments & invoices"
+                style={{
+                  cursor: 'pointer',
+                  maxWidth: '160px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  padding: '6px 12px',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <IconUser size={15} />
+                <span>{currentUser}</span>
+              </button>
+            </div>
+          ) : (
+            <button
               onClick={() => onOpenAuth('login')}
+              className="btn-subtle"
+              style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}
             >
-              Log in
+              Sign In
             </button>
-            <button
-              className="su"
-              data-auth="signup"
-              id="su"
-              onClick={() => onOpenAuth('signup')}
+          )}
+
+          {/* Cart Trigger Button */}
+          <button
+            onClick={onCartClick}
+            className="btn-primary"
+            aria-label={`View order, ${cartCount} items`}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-2)',
+              position: 'relative',
+              gap: 'var(--space-2)',
+            }}
+          >
+            <IconCart size={18} />
+            <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>Order</span>
+            <span
+              className="tabular-nums"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-round)',
+                minWidth: '20px',
+                textAlign: 'center',
+              }}
             >
-              Sign up
-            </button>
-          </>
-        )}
-        <button
-          className={`cart ${cartBump ? 'bump' : ''}`}
-          id="cart"
-          aria-label="Open cart"
-          onClick={onCartClick}
-        >
-          Cart (<span id="count">{cartCount}</span>)
-        </button>
-        <button
-          className="burger"
-          id="burger"
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={mobileMenuOpen}
-          aria-controls="mm"
-          onClick={onToggleMobileMenu}
-        >
-          <i />
-          <i />
-        </button>
+              {cartCount}
+            </span>
+          </button>
+
+          {/* Mobile Menu Toggle Button */}
+          <button
+            onClick={onToggleMobileMenu}
+            className="mobile-nav-toggle btn-subtle"
+            aria-label="Toggle navigation menu"
+            style={{ display: 'inline-flex', padding: '8px', color: 'var(--color-ink)' }}
+          >
+            <IconMenu size={22} />
+          </button>
+        </div>
       </div>
-    </nav>
+
+      <style>{`
+        @media (min-width: 900px) {
+          .desktop-nav {
+            display: flex !important;
+          }
+          .mobile-nav-toggle {
+            display: none !important;
+          }
+        }
+      `}</style>
+    </header>
   );
 };

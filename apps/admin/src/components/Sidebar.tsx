@@ -29,9 +29,9 @@ const Sidebar: React.FC = () => {
   };
 
   const navItemClass = (isActive: boolean) =>
-    `flex items-center gap-3.5 px-3.5 py-2.5 mx-2 my-0.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+    `flex items-center gap-3.5 px-3.5 py-2.5 mx-2 my-0.5 rounded-lg text-sm font-medium transition-colors ${
       isActive
-        ? "bg-indigo-600/10 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400 font-semibold shadow-sm"
+        ? "bg-[#124330]/10 text-[#124330] dark:bg-[#124330]/25 dark:text-[#52b788] font-semibold border-l-2 border-[#124330]"
         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/[0.04]"
     }`;
 
@@ -48,14 +48,14 @@ const Sidebar: React.FC = () => {
         <div className="overflow-y-auto overflow-x-hidden flex-1 py-4">
           <div className="flex items-center justify-between px-5 mb-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 font-bold text-sm">
+              <div className="w-8 h-8 rounded-md bg-[#124330] flex items-center justify-center text-[#fbfaf8] border border-[#124330]/20 font-bold text-sm tracking-tight">
                 AG
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
                   AccessGlobal
                 </span>
-                <span className="text-[10px] uppercase font-semibold text-indigo-600 dark:text-indigo-400 tracking-wider">
+                <span className="text-[10px] uppercase font-semibold text-[#124330] dark:text-[#52b788] tracking-wider">
                   Admin Console
                 </span>
               </div>
@@ -150,7 +150,7 @@ const Sidebar: React.FC = () => {
         {/* Bottom card & session info */}
         <div className="p-3 border-t border-gray-200/80 dark:border-white/[0.06] space-y-2">
           {/* Supabase safe vault pill */}
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-indigo-500/5 to-transparent border border-emerald-500/20 dark:border-emerald-500/20 flex items-center justify-between">
+          <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

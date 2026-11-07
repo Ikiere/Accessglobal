@@ -25,9 +25,9 @@ const Stats: React.FC = () => {
           <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${
             stats.supabaseConnected
               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-              : "bg-blue-500/10 border-blue-500/30 text-blue-400"
+              : "bg-emerald-900/10 border-emerald-900/30 text-emerald-800 dark:text-emerald-300"
           }`}>
-            {stats.supabaseConnected ? "⚡ Powered by Supabase" : "🔒 Local Resilient Vault"}
+            {stats.supabaseConnected ? "PostgreSQL Connected" : "Local Resilient Store"}
           </span>
         )}
       </div>

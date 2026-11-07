@@ -73,26 +73,23 @@ const Landing: React.FC = () => {
       <Sidebar />
 
       <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 overflow-y-auto">
-        {/* Executive Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900/10 via-white to-violet-500/5 dark:from-indigo-950/40 dark:via-[#111827] dark:to-[#0a0e17] border border-gray-200/80 dark:border-white/[0.08] p-6 sm:p-8 mb-8 shadow-sm">
-          {/* Subtle decorative glow */}
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 rounded-full bg-gradient-to-br from-indigo-500/15 via-violet-500/10 to-transparent blur-3xl pointer-events-none" />
-
+        {/* Executive Operational Console Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#111827] border border-gray-200 dark:border-white/[0.08] p-6 sm:p-8 mb-8 shadow-sm">
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  <HiOutlineSparkles className="text-sm" /> Enterprise Suite v2.4
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#124330]/10 text-[#124330] dark:bg-[#124330]/25 dark:text-[#52b788] border border-[#124330]/20">
+                  <HiOutlineShieldCheck className="text-sm" /> Verified Workshop Network
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Customs Telemetry
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-                Welcome back, {adminName} 👋
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Operational Telemetry — {adminName}
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 max-w-2xl leading-relaxed">
-                Centralized telemetry for AccessGlobal. Manage catalog inventory, review incoming client orders, and monitor your zero-exposure Supabase database.
+                Direct cross-border consignment monitoring, workshop inventory status, and bonded customs settlement.
               </p>
             </div>
 
@@ -100,7 +97,7 @@ const Landing: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/products/create-product"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#124330] hover:bg-[#0c2e21] text-white font-medium text-xs transition-colors"
               >
                 <HiOutlinePlus className="text-base" />
                 <span>Add Product</span>
@@ -108,15 +105,15 @@ const Landing: React.FC = () => {
 
               <Link
                 to="/supabase-settings"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-800 dark:text-white font-semibold text-xs border border-gray-200 dark:border-white/[0.1] transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-800 dark:text-white font-medium text-xs border border-gray-200 dark:border-white/[0.1] transition-colors"
               >
-                <HiOutlineDatabase className="text-base text-emerald-500" />
+                <HiOutlineDatabase className="text-base text-emerald-600" />
                 <span>Supabase DB</span>
               </Link>
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 font-medium text-xs border border-transparent dark:border-white/[0.06] transition-colors"
+                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 font-medium text-xs border border-transparent dark:border-white/[0.06] transition-colors"
                 title="Export executive report"
               >
                 <HiOutlineArrowDownTray className="text-base" />
@@ -129,22 +126,22 @@ const Landing: React.FC = () => {
         {/* 4 Hero KPI Cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           {/* Card 1: Gross Revenue */}
-          <div className="relative group p-6 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-all">
+          <div className="relative group p-6 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Gross Revenue
+                Landed Volume
               </span>
-              <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <div className="p-2.5 rounded-lg bg-[#124330]/10 text-[#124330] dark:bg-[#124330]/25 dark:text-[#52b788]">
                 <HiOutlineCurrencyDollar className="text-xl" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-gray-900 dark:text-white tracking-tight">
                 ${revenueTotal}
               </span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                 <HiOutlineArrowTrendingUp /> +14.8%
               </span>
               <span className="text-gray-500 dark:text-gray-400">vs preceding cycle</span>
@@ -152,22 +149,22 @@ const Landing: React.FC = () => {
           </div>
 
           {/* Card 2: Total Orders */}
-          <div className="relative group p-6 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-all">
+          <div className="relative group p-6 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Order Fulfillment
+                Active Consignments
               </span>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <HiOutlineTruck className="text-xl" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-gray-900 dark:text-white tracking-tight">
                 {ordersTotal.toLocaleString()}
               </span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                 <HiOutlineArrowTrendingUp /> +8.2%
               </span>
               <span className="text-gray-500 dark:text-gray-400">98.4% delivered</span>
@@ -175,104 +172,104 @@ const Landing: React.FC = () => {
           </div>
 
           {/* Card 3: Total Customers */}
-          <div className="relative group p-6 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-all">
+          <div className="relative group p-6 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Active Customers
+                Active Accounts
               </span>
-              <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+              <div className="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
                 <HiOutlineUserGroup className="text-xl" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-gray-900 dark:text-white tracking-tight">
                 {customersTotal.toLocaleString()}
               </span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                 <HiOutlineArrowTrendingUp /> +19.4%
               </span>
-              <span className="text-gray-500 dark:text-gray-400">Verified accounts</span>
+              <span className="text-gray-500 dark:text-gray-400">Verified buyers</span>
             </div>
           </div>
 
           {/* Card 4: Catalog Products */}
-          <div className="relative group p-6 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-all">
+          <div className="relative group p-6 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Inventory Catalog
+                Audited Catalog
               </span>
-              <div className="p-2.5 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400">
-                <HiOutlineDevicePhoneMobile className="text-xl" />
+              <div className="p-2.5 rounded-lg bg-[#124330]/10 text-[#124330] dark:bg-[#124330]/25 dark:text-[#52b788]">
+                <HiOutlineShieldCheck className="text-xl" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-gray-900 dark:text-white tracking-tight">
                 {productsTotal.toLocaleString()}
               </span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400">
-                <HiOutlineSparkles /> In Stock
+              <span className="inline-flex items-center gap-1 font-semibold text-[#124330] dark:text-[#52b788]">
+                <HiOutlineCheckCircle /> 100% Verified
               </span>
-              <span className="text-gray-500 dark:text-gray-400">Across 6 categories</span>
+              <span className="text-gray-500 dark:text-gray-400">Across 6 aisles</span>
             </div>
           </div>
         </section>
 
         {/* Interactive Analytics Section (Revenue vs Profit / Traffic) */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm mb-8">
+        <section className="p-6 rounded-2xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.08] shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Financial Velocity & Forecast
+                  Landed Financial Velocity
                 </h2>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#124330]/10 text-[#124330] dark:bg-[#124330]/25 dark:text-[#52b788] font-semibold">
                   AUDITED
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Real-time tracking of monthly turnover, net profit margins, and inventory overhead.
+                Monthly multi-vendor turnover, customs pre-clearance rates, and workshop disbursements.
               </p>
             </div>
 
             {/* Timeframe & metric toggles */}
             <div className="flex items-center gap-2">
-              <div className="flex p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08]">
+              <div className="flex p-1 rounded-lg bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08]">
                 <button
                   onClick={() => setActiveChartTab("revenue")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded text-xs font-semibold transition-all ${
                     activeChartTab === "revenue"
-                      ? "bg-white dark:bg-indigo-600 text-gray-900 dark:text-white shadow-sm"
+                      ? "bg-white dark:bg-[#124330] text-gray-900 dark:text-white shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  Revenue vs Profit
+                  Landed Volume
                 </button>
                 <button
                   onClick={() => setActiveChartTab("volume")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded text-xs font-semibold transition-all ${
                     activeChartTab === "volume"
-                      ? "bg-white dark:bg-indigo-600 text-gray-900 dark:text-white shadow-sm"
+                      ? "bg-white dark:bg-[#124330] text-gray-900 dark:text-white shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  Volume Trends
+                  Aisle Volume
                 </button>
               </div>
 
               {/* Time range pills */}
-              <div className="hidden sm:flex p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08]">
+              <div className="hidden sm:flex p-1 rounded-lg bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08]">
                 {(["7D", "30D", "90D", "YTD"] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
-                    className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all ${
+                    className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
                       timeRange === range
-                        ? "bg-indigo-600 text-white font-semibold"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        ? "bg-white dark:bg-white/[0.1] text-gray-900 dark:text-white shadow-sm"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
                     }`}
                   >
                     {range}
@@ -285,29 +282,29 @@ const Landing: React.FC = () => {
           {/* Chart Display */}
           <div className="h-72 sm:h-80 w-full pt-2">
             {activeChartTab === "revenue" ? (
-              <RechartsBarChart />
-            ) : (
               <RechartsAreaChart />
+            ) : (
+              <RechartsBarChart />
             )}
           </div>
 
           {/* Chart Summary Footnotes */}
           <div className="mt-6 pt-5 border-t border-gray-100 dark:border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
             <div>
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Average Order Value</span>
-              <p className="text-base font-bold text-gray-900 dark:text-white mt-0.5">$87.40</p>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Average Order Value</span>
+              <p className="text-base font-bold font-mono tracking-tight text-gray-900 dark:text-white mt-0.5">$87.40</p>
             </div>
             <div>
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Gross Margin</span>
-              <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">64.2%</p>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Gross Margin</span>
+              <p className="text-base font-bold font-mono tracking-tight text-emerald-700 dark:text-emerald-400 mt-0.5">64.2%</p>
             </div>
             <div>
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Repeat Customer Rate</span>
-              <p className="text-base font-bold text-gray-900 dark:text-white mt-0.5">38.9%</p>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Repeat Buyer Rate</span>
+              <p className="text-base font-bold font-mono tracking-tight text-gray-900 dark:text-white mt-0.5">38.9%</p>
             </div>
             <div>
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Inventory Turnover</span>
-              <p className="text-base font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">4.8x / yr</p>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Inventory Turnover</span>
+              <p className="text-base font-bold font-mono tracking-tight text-[#124330] dark:text-emerald-400 mt-0.5">4.8x / yr</p>
             </div>
           </div>
         </section>
@@ -324,12 +321,12 @@ const Landing: React.FC = () => {
                     Recent Customer Orders
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Live stream of recent checkouts and processing states.
+                    Live stream of recent checkouts and bonded processing states.
                   </p>
                 </div>
                 <Link
                   to="/orders"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#124330] dark:text-emerald-400 hover:underline"
                 >
                   View All Orders <HiOutlineChevronRight className="text-xs" />
                 </Link>
@@ -349,10 +346,10 @@ const Landing: React.FC = () => {
                     <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04] text-xs">
                       {recentOrders.slice(0, 5).map((order) => {
                         const statusColors: Record<string, string> = {
-                          delivered: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-                          processing: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-                          pending: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-                          cancelled: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+                          delivered: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40",
+                          processing: "bg-[#124330]/10 text-[#124330] border-[#124330]/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700/30",
+                          pending: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40",
+                          cancelled: "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/40",
                         };
                         const badgeClass = statusColors[order.status?.toLowerCase()] || statusColors.pending;
 
@@ -364,7 +361,7 @@ const Landing: React.FC = () => {
                             <td className="py-3 text-gray-700 dark:text-gray-300">
                               {order.customerName || "Verified Buyer"}
                             </td>
-                            <td className="py-3 font-bold text-gray-900 dark:text-white">
+                            <td className="py-3 font-bold font-mono text-gray-900 dark:text-white">
                               ${Number(order.total || 0).toFixed(2)}
                             </td>
                             <td className="py-3 text-right">
@@ -398,7 +395,7 @@ const Landing: React.FC = () => {
                 </div>
                 <Link
                   to="/products"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#124330] dark:text-emerald-400 hover:underline"
                 >
                   Manage Catalog <HiOutlineChevronRight className="text-xs" />
                 </Link>
@@ -408,7 +405,7 @@ const Landing: React.FC = () => {
                 {recentProducts.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-3.5 p-3 rounded-2xl bg-gray-50/80 dark:bg-white/[0.02] border border-gray-200/60 dark:border-white/[0.06] hover:border-indigo-500/30 transition-all"
+                    className="flex items-center gap-3.5 p-3 rounded-2xl bg-gray-50/80 dark:bg-white/[0.02] border border-gray-200/60 dark:border-white/[0.06] hover:border-[#124330]/30 transition-all"
                   >
                     <img
                       src={p.mainImage || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&auto=format&fit=crop&q=80"}
@@ -420,13 +417,13 @@ const Landing: React.FC = () => {
                         {p.title}
                       </h4>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        {p.category || "General"} · In Stock: {p.inStock ?? 25}
+                        {p.category || "General"} · In Stock: <span className="font-mono">{p.inStock ?? 25}</span>
                       </p>
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
+                        <span className="text-xs font-extrabold font-mono text-[#124330] dark:text-emerald-400">
                           ${Number(p.price).toFixed(2)}
                         </span>
-                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-500">
+                        <span className="flex items-center gap-0.5 text-[10px] font-bold font-mono text-amber-500">
                           <HiOutlineStar className="text-xs fill-amber-500" /> {p.rating || 4.9}
                         </span>
                       </div>
@@ -440,7 +437,7 @@ const Landing: React.FC = () => {
           {/* Right Column (5 cols): Supabase DB Health Matrix & Traffic Channels */}
           <div className="lg:col-span-5 space-y-8">
             {/* Supabase Safe Connection Card */}
-            <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-white to-transparent dark:from-emerald-950/30 dark:via-[#111827] dark:to-[#0a0e17] border border-emerald-500/30 dark:border-emerald-500/25 shadow-sm">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#111827] border border-emerald-500/30 dark:border-emerald-500/25 shadow-sm">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
@@ -459,9 +456,9 @@ const Landing: React.FC = () => {
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                   isSupabaseConnected
                     ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                    : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30"
+                    : "bg-[#124330]/15 text-[#124330] dark:text-emerald-400 border border-[#124330]/30"
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConnected ? "bg-emerald-500" : "bg-indigo-500"} animate-pulse`}></span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConnected ? "bg-emerald-500" : "bg-[#124330] dark:bg-emerald-400"} animate-pulse`}></span>
                   {isSupabaseConnected ? "PostgreSQL Active" : "Local Resilient Store"}
                 </span>
               </div>
@@ -489,7 +486,7 @@ const Landing: React.FC = () => {
 
               <Link
                 to="/supabase-settings"
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md shadow-emerald-500/20 transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white font-semibold text-xs shadow-md shadow-[#124330]/20 transition-all"
               >
                 <HiOutlineBolt className="text-sm" />
                 <span>Configure Supabase Credentials</span>
@@ -507,10 +504,10 @@ const Landing: React.FC = () => {
 
               <div className="space-y-4">
                 {[
-                  { label: "Direct Traffic", pct: 44, color: "bg-indigo-600", val: "$56,518" },
-                  { label: "Organic Search", pct: 32, color: "bg-emerald-500", val: "$41,104" },
-                  { label: "Social Media", pct: 16, color: "bg-violet-500", val: "$20,552" },
-                  { label: "Partner Referrals", pct: 8, color: "bg-cyan-500", val: "$10,276" },
+                  { label: "Direct Traffic", pct: 44, color: "bg-[#124330] dark:bg-emerald-500", val: "$56,518" },
+                  { label: "Organic Search", pct: 32, color: "bg-[#245e45] dark:bg-emerald-600", val: "$41,104" },
+                  { label: "Workshop Referrals", pct: 16, color: "bg-[#457c63] dark:bg-emerald-700", val: "$20,552" },
+                  { label: "Institutional Inquiries", pct: 8, color: "bg-[#829e92] dark:bg-emerald-800", val: "$10,276" },
                 ].map((item) => (
                   <div key={item.label} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs">

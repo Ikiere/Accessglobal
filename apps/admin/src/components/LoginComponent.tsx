@@ -81,14 +81,11 @@ export const LoginComponent: React.FC = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       {/* Container Card */}
-      <div className="bg-[#0b0e14]/90 border border-white/[0.08] rounded-2xl p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-        {/* Glow Accent */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
-
+      <div className="bg-[#0b0e14] border border-white/[0.08] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
           {/* Header Brand */}
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+            <div className="w-12 h-12 rounded-xl bg-[#124330] border border-emerald-500/30 flex items-center justify-center mx-auto shadow-sm">
               <HiOutlineServer className="text-2xl text-white" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white">
@@ -140,7 +137,7 @@ export const LoginComponent: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@yourdomain.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.1] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.1] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -169,7 +166,7 @@ export const LoginComponent: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.1] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.1] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>
             </div>
@@ -179,7 +176,7 @@ export const LoginComponent: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white font-semibold text-sm transition-all border border-[#124330] flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <span>{loading ? "Authenticating Session..." : "Sign In to Admin Portal"}</span>
             <HiOutlineArrowRight className="text-sm" />

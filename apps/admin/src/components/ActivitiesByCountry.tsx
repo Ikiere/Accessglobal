@@ -23,7 +23,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$2300,20"
           percent="+20%"
         >
-          <img src="/src/assets/united-states.png" />
+          <img src="/src/assets/united-states.png" alt="United States flag" width={32} height={32} />
         </SingleActivity>
         <SingleActivity
           mainTitle="United Kingdom"
@@ -31,7 +31,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$1000,00"
           percent="+15%"
         >
-          <img src="/src/assets/united-kingdom.png" />
+          <img src="/src/assets/united-kingdom.png" alt="United Kingdom flag" width={32} height={32} />
         </SingleActivity>
         <SingleActivity
           mainTitle="China"
@@ -39,7 +39,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$8000,40"
           percent="+50%"
         >
-          <img src="/src/assets/china.png" />
+          <img src="/src/assets/china.png" alt="China flag" width={32} height={32} />
         </SingleActivity>
         <SingleActivity
           mainTitle="Canada"
@@ -47,7 +47,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$9000,34"
           percent="+45%"
         >
-          <img src="/src/assets/canada.png" />
+          <img src="/src/assets/canada.png" alt="Canada flag" width={32} height={32} />
         </SingleActivity>
         <SingleActivity
           mainTitle="Germany"
@@ -55,7 +55,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$4000,00"
           percent="-5%"
         >
-          <img src="/src/assets/germany.png" />
+          <img src="/src/assets/germany.png" alt="Germany flag" width={32} height={32} />
         </SingleActivity>
         <SingleActivity
           mainTitle="France"
@@ -63,7 +63,7 @@ const ActivitiesByCountry = () => {
           totalMoney="$500,00"
           percent="-25%"
         >
-          <img src="/src/assets/france.png" />
+          <img src="/src/assets/france.png" alt="France flag" width={32} height={32} />
         </SingleActivity>
       </div>
     </div>

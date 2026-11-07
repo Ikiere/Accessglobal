@@ -1,0 +1,223 @@
+export interface ProductSpec {
+  label: string;
+  value: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category: 'E-Bikes' | 'Clothing' | 'Shoes' | 'Appliances' | 'Perfumes' | 'Accessories';
+  maker: string;
+  makerOrigin: string;
+  price: number;
+  badge?: string;
+  image: string;
+  description: string;
+  leadTime: string;
+  inStock: boolean;
+  specs: ProductSpec[];
+}
+
+export const catalogProducts: Product[] = [
+  {
+    id: 'agm-01',
+    name: 'Volt X1 Commuter E-Bike',
+    category: 'E-Bikes',
+    maker: 'Nordic Motion Labs',
+    makerOrigin: 'Helsinki, Finland',
+    price: 1299,
+    badge: 'Flagship Edition',
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=900&auto=format&fit=crop&q=80',
+    description: 'Aircraft-grade 6061-T6 aluminum hydroformed frame paired with a whisper-quiet 250W rear hub motor and integrated torque sensor for responsive urban transit.',
+    leadTime: 'Pre-cleared · Ships in 48h',
+    inStock: true,
+    specs: [
+      { label: 'Range', value: '80 km per charge' },
+      { label: 'Motor', value: '250W Brushless Hub' },
+      { label: 'Frame', value: '6061 Hydroformed Alloy' },
+      { label: 'Weight', value: '14.8 kg' },
+      { label: 'Warranty', value: '3-Year Frame & Motor' },
+    ],
+  },
+  {
+    id: 'agm-02',
+    name: 'Trail Pro All-Terrain E-Bike',
+    category: 'E-Bikes',
+    maker: 'Kallio Alpine Works',
+    makerOrigin: 'Innsbruck, Austria',
+    price: 2199,
+    badge: 'Alpine Tested',
+    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=900&auto=format&fit=crop&q=80',
+    description: 'Full-suspension gravel and trail machine engineered with a 650Wh high-capacity battery pack, 85Nm mid-drive torque, and hydraulic four-piston disc brakes.',
+    leadTime: 'Pre-cleared · Ships in 3–5 days',
+    inStock: true,
+    specs: [
+      { label: 'Range', value: '120 km eco mode' },
+      { label: 'Torque', value: '85 Nm Mid-Drive' },
+      { label: 'Brakes', value: 'Shimano Hydraulic 4-Piston' },
+      { label: 'Tires', value: 'Schwalbe G-One 2.25"' },
+      { label: 'Warranty', value: '5-Year Structural' },
+    ],
+  },
+  {
+    id: 'agm-03',
+    name: 'French Linen Belted Dress',
+    category: 'Clothing',
+    maker: 'Atelier Saint-Florent',
+    makerOrigin: 'Normandy, France',
+    price: 124,
+    badge: 'OEKO-TEX Certified',
+    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=900&auto=format&fit=crop&q=80',
+    description: 'Spun from 100% certified Normandy flax. Breathable open-weave construction with natural horn buttons, side-seam pockets, and a removable tailored tie belt.',
+    leadTime: 'Ships next business day',
+    inStock: true,
+    specs: [
+      { label: 'Material', value: '100% Normandy Flax Linen' },
+      { label: 'Weight', value: '185 GSM Medium-Weight' },
+      { label: 'Closure', value: 'Organic Corozo Buttons' },
+      { label: 'Care', value: 'Machine wash gentle cold' },
+      { label: 'Origin', value: 'Woven in Rouen, France' },
+    ],
+  },
+  {
+    id: 'agm-04',
+    name: 'Heritage Selvedge Denim Jacket',
+    category: 'Clothing',
+    maker: 'Kojima Stitch Guild',
+    makerOrigin: 'Okayama, Japan',
+    price: 185,
+    badge: '14.5oz Raw Indigo',
+    image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80',
+    description: 'Woven on vintage Toyoda shuttle looms with ring-spun Zimbabwe cotton. Features classic red-line selvedge ID, solid copper shank buttons, and chainstitched hems.',
+    leadTime: 'Ships next business day',
+    inStock: true,
+    specs: [
+      { label: 'Denim', value: '14.5oz Japanese Selvedge' },
+      { label: 'Dye', value: 'Pure Natural Indigo' },
+      { label: 'Hardware', value: 'Custom Solid Copper' },
+      { label: 'Fit', value: 'Tailored Boxy Workwear' },
+      { label: 'Origin', value: 'Kojima, Okayama' },
+    ],
+  },
+  {
+    id: 'agm-05',
+    name: 'AirStride Carbon-Plate Runner',
+    category: 'Shoes',
+    maker: 'Veloce Footwear Studio',
+    makerOrigin: 'Montebelluna, Italy',
+    price: 168,
+    badge: 'Marathon Class',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900&auto=format&fit=crop&q=80',
+    description: 'Full-length curved carbon-fiber propulsion plate embedded in supercritical nitrogen-infused foam. Engineered for distance road running and daily tempo training.',
+    leadTime: 'Ships in 24 hours',
+    inStock: true,
+    specs: [
+      { label: 'Weight', value: '198 grams (US 9)' },
+      { label: 'Drop', value: '6 mm (34mm / 28mm)' },
+      { label: 'Plate', value: 'Articulated Carbon Composite' },
+      { label: 'Outsole', value: 'Vibram High-Traction Rubber' },
+      { label: 'Origin', value: 'Veneto, Italy' },
+    ],
+  },
+  {
+    id: 'agm-06',
+    name: 'Oxford Goodyear-Welted Derby',
+    category: 'Shoes',
+    maker: 'Cheaney & Croft',
+    makerOrigin: 'Northampton, England',
+    price: 245,
+    badge: 'Full Grain Calf',
+    image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=900&auto=format&fit=crop&q=80',
+    description: 'Benchmade with French box calf leather over an anatomical British last. Full Goodyear welt construction allowing complete resoling for decades of wear.',
+    leadTime: 'Hand-finished · Ships in 48h',
+    inStock: true,
+    specs: [
+      { label: 'Construction', value: 'Goodyear Welted (360°)' },
+      { label: 'Upper', value: 'Full-Grain Box Calf' },
+      { label: 'Sole', value: 'Dainite Studded Rubber' },
+      { label: 'Lining', value: 'Vegetable-Tanned Calfskin' },
+      { label: 'Origin', value: 'Northamptonshire, UK' },
+    ],
+  },
+  {
+    id: 'agm-07',
+    name: 'SmartChef Precision 6L Air Fryer',
+    category: 'Appliances',
+    maker: 'Kronos Domestic Lab',
+    makerOrigin: 'Solingen, Germany',
+    price: 139,
+    badge: 'Dual-Zone PID',
+    image: 'https://images.unsplash.com/photo-1585515320310-259814833e62?w=900&auto=format&fit=crop&q=80',
+    description: 'Precision dual-heating elements with high-speed convection airflow and PID micro-temperature controller accurate to 1°C. Ceramic PTFE-free nonstick crisper basket.',
+    leadTime: 'Pre-cleared · Ships in 24h',
+    inStock: true,
+    specs: [
+      { label: 'Capacity', value: '6.0 Liters' },
+      { label: 'Power', value: '1800W Convection' },
+      { label: 'Temp Range', value: '40°C – 230°C' },
+      { label: 'Coating', value: 'Ceramic Nano-Glass (PTFE-Free)' },
+      { label: 'Dimensions', value: '34 × 28 × 32 cm' },
+    ],
+  },
+  {
+    id: 'agm-08',
+    name: 'CycloneVac Pro Brushless Vacuum',
+    category: 'Appliances',
+    maker: 'AeroCraft Precision',
+    makerOrigin: 'Daejeon, South Korea',
+    price: 289,
+    badge: '180AW Suction',
+    image: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=900&auto=format&fit=crop&q=80',
+    description: 'High-speed 125,000 RPM digital brushless motor providing 180 Air Watts of continuous fade-free suction with a sealed 5-stage HEPA 13 filtration system.',
+    leadTime: 'Ships next business day',
+    inStock: true,
+    specs: [
+      { label: 'Runtime', value: 'Up to 65 minutes' },
+      { label: 'Motor', value: '125k RPM Digital Brushless' },
+      { label: 'Filtration', value: 'True HEPA H13 Sealed' },
+      { label: 'Bin Volume', value: '0.8 Liters (One-Click Empty)' },
+      { label: 'Weight', value: '1.45 kg Handheld Body' },
+    ],
+  },
+  {
+    id: 'agm-09',
+    name: 'Oud Noir Extrait de Parfum 100ml',
+    category: 'Perfumes',
+    maker: 'Maison Al-Dahabi',
+    makerOrigin: 'Grasse, France',
+    price: 110,
+    badge: '30% Oil Concentration',
+    image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=900&auto=format&fit=crop&q=80',
+    description: 'Artisanal extraction combining sustainably harvested Cambodian wild agarwood, damascena rose absolute, smoked vetiver, and atlas cedarwood.',
+    leadTime: 'Hazard-safe courier · Ships in 24h',
+    inStock: true,
+    specs: [
+      { label: 'Concentration', value: 'Extrait de Parfum (30%)' },
+      { label: 'Volume', value: '100 ml / 3.4 fl. oz.' },
+      { label: 'Top Notes', value: 'Pink Peppercorn, Saffron, Bergamot' },
+      { label: 'Heart Notes', value: 'Damask Rose, Leather, Incense' },
+      { label: 'Base Notes', value: 'Wild Oud, Atlas Cedar, Ambergris' },
+    ],
+  },
+  {
+    id: 'agm-10',
+    name: 'Ceramic Automatic Field Watch',
+    category: 'Accessories',
+    maker: 'Chronos Horology Werk',
+    makerOrigin: 'Geneva, Switzerland',
+    price: 340,
+    badge: 'Sapphire Crystal',
+    image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&auto=format&fit=crop&q=80',
+    description: 'Matte black zirconium oxide ceramic case with scratch-proof anti-reflective sapphire crystal and a 24-jewel automatic mechanical movement with 42-hour power reserve.',
+    leadTime: 'Insured courier · Ships in 24h',
+    inStock: true,
+    specs: [
+      { label: 'Movement', value: 'Automatic Calibre 24-Jewel' },
+      { label: 'Power Reserve', value: '42 Hours' },
+      { label: 'Case Material', value: 'Zirconia Matte Ceramic' },
+      { label: 'Water Resist', value: '100 Meters / 10 ATM' },
+      { label: 'Diameter', value: '38.5 mm (Lug-to-lug 45mm)' },
+    ],
+  },
+];
+

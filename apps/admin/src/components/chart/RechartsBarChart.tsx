@@ -1,5 +1,3 @@
-'use client';
-
 import {
   BarChart,
   Bar,
@@ -11,36 +9,31 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const salesData = [
+const aisleVolumeData = [
   {
-    name: 'Jan',
-    revenue: 4000,
-    profit: 2400,
+    aisle: 'E-Bikes',
+    revenue: 48200,
+    orders: 37,
   },
   {
-    name: 'Feb',
-    revenue: 3000,
-    profit: 1398,
+    aisle: 'Apparel',
+    revenue: 29400,
+    orders: 172,
   },
   {
-    name: 'Mar',
-    revenue: 9800,
-    profit: 2000,
+    aisle: 'Footwear',
+    revenue: 34100,
+    orders: 168,
   },
   {
-    name: 'Apr',
-    revenue: 3908,
-    profit: 2780,
+    aisle: 'Appliances',
+    revenue: 41800,
+    orders: 194,
   },
   {
-    name: 'May',
-    revenue: 4800,
-    profit: 1890,
-  },
-  {
-    name: 'Jun',
-    revenue: 3800,
-    profit: 2390,
+    aisle: 'Perfumes',
+    revenue: 22600,
+    orders: 215,
   },
 ];
 
@@ -50,18 +43,28 @@ const RechartsBarChart = () => {
       <BarChart
         width={500}
         height={300}
-        data={salesData}
-        margin={{
-          right: 30,
-        }}
+        data={aisleVolumeData}
+        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(18, 21, 22, 0.08)" />
+        <XAxis
+          dataKey="aisle"
+          tickLine={false}
+          axisLine={{ stroke: 'rgba(18, 21, 22, 0.12)' }}
+          tick={{ fontSize: 12, fill: '#50565a' }}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={{ stroke: 'rgba(18, 21, 22, 0.12)' }}
+          tick={{ fontSize: 12, fill: '#50565a' }}
+          tickFormatter={(v) => `$${v / 1000}k`}
+        />
         <Tooltip content={<CustomTooltip />} />
-        <Legend />
-        <Bar dataKey="revenue" fill="#2563eb" />
-        <Bar dataKey="profit" fill="#8b5cf6" />
+        <Legend
+          wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+          formatter={(value) => (value === 'revenue' ? 'Gross Volume ($)' : 'Fulfilled Units')}
+        />
+        <Bar dataKey="revenue" fill="#124330" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -69,20 +72,22 @@ const RechartsBarChart = () => {
 
 export default RechartsBarChart;
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: any; label?: any }) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; name: string }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-4 bg-slate-900 flex flex-col gap-4 rounded-md">
-        <p className="text-medium text-lg">{label}</p>
-        <p className="text-sm text-blue-400">
-          Revenue:
-          <span className="ml-2">${payload[0].value}</span>
-        </p>
-        <p className="text-sm text-indigo-400">
-          Profit:
-          <span className="ml-2">${payload[1].value}</span>
+      <div className="p-3 bg-[#121516] text-[#fbfaf8] border border-white/10 rounded-lg shadow-lg text-xs font-sans">
+        <p className="font-semibold text-sm mb-1">{label} Aisle</p>
+        <p className="text-[#8cd6b5] font-mono">
+          Gross Volume: <span className="font-semibold">${payload[0]?.value?.toLocaleString()}</span>
         </p>
       </div>
     );
   }
+  return null;
 };

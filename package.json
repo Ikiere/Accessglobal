@@ -29,5 +29,10 @@
     "frontend"
   ],
   "author": "Zerocoded",
-  "license": "MIT"
+  "license": "MIT",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
 }

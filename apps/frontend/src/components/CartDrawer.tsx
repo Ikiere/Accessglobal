@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Product } from './ProductGrid';
+import React, { useState, useEffect } from 'react';
+import { Product } from '../data/products';
+import { IconClose, IconTrash, IconPlus, IconMinus, IconShieldCheck, IconArrowRight } from './icons';
+import { OrderDetails } from './OrderReceiptModal';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -12,357 +14,513 @@ interface CartDrawerProps {
   onUpdateQuantity: (id: string, delta: number) => void;
   onRemoveItem: (id: string) => void;
   onClearCart: () => void;
+  onOrderComplete: (order: OrderDetails) => void;
   onShowToast: (message: string) => void;
 }
 
-export const CartDrawer = ({
+export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   items,
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  onOrderComplete,
   onShowToast,
-}: CartDrawerProps) => {
-  const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+}) => {
+  const [step, setStep] = useState<'cart' | 'checkout'>('cart');
+  const [promoCode, setPromoCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerCountry, setCustomerCountry] = useState('United States');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple' | 'google'>('card');
-  const [orderNumber, setOrderNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple' | 'transfer'>('card');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Lock body scroll when cart is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      // Reset step back to 'cart' after drawer closes
-      const timer = setTimeout(() => {
-        if (step === 'success') {
-          setStep('cart');
-        }
-      }, 400);
-      return () => clearTimeout(timer);
+      setStep('cart');
     }
-  }, [isOpen]);
 
-  // Handle ESC key to close
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
   }, [isOpen, onClose]);
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalItemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = Math.round((rawSubtotal * discountPercent) / 100);
+  const finalTotal = Math.max(0, rawSubtotal - discountAmount);
+  const freeShippingThreshold = 150;
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - rawSubtotal);
 
-  const handleStartCheckout = () => {
-    setStep('checkout');
-  };
-
-  const handleBackToCart = () => {
-    setStep('cart');
+  const handleApplyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (promoCode.trim().toUpperCase() === 'GLOBAL10') {
+      setDiscountPercent(10);
+      onShowToast('Promo code applied: 10% discount activated!');
+    } else {
+      onShowToast('Invalid promo code. Try GLOBAL10');
+    }
   };
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim() || !customerEmail.trim() || !customerAddress.trim()) {
-      onShowToast('Please fill in your shipping details.');
+      onShowToast('Please provide your complete name, email, and shipping address.');
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate real order placement
     setTimeout(() => {
-      const generatedOrder = `AGM-${Math.floor(100000 + Math.random() * 900000)}`;
-      setOrderNumber(generatedOrder);
+      const generatedOrder: OrderDetails = {
+        orderNumber: `AGM-${Math.floor(100000 + Math.random() * 900000)}`,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim(),
+        customerAddress: customerAddress.trim(),
+        customerCountry,
+        items: items.map((i) => ({
+          id: i.id,
+          name: i.name,
+          maker: i.maker,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        subtotal: rawSubtotal,
+        discount: discountAmount,
+        total: finalTotal,
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+
       setIsSubmitting(false);
-      setStep('success');
       onClearCart();
-      onShowToast(`Order placed successfully! #${generatedOrder}`);
-    }, 1000);
+      onClose();
+      onOrderComplete(generatedOrder);
+    }, 900);
   };
 
-  const handleContinueShopping = () => {
-    onClose();
-    const productsSection = document.getElementById('products');
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  if (!isOpen) return null;
 
   return (
     <div
-      className={`cart-drawer-wrapper ${isOpen ? 'open' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label="Shopping Cart"
+      aria-labelledby="drawer-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 55,
+        backgroundColor: 'rgba(18, 21, 22, 0.45)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}
+      onClick={onClose}
     >
-      <div className="cart-backdrop" onClick={onClose} />
-
-      <aside className="cart-drawer">
-        {/* Header */}
-        <div className="cart-header">
-          <div className="cart-header-title">
-            <h3>
-              {step === 'cart'
-                ? 'Your Cart'
-                : step === 'checkout'
-                ? 'Checkout'
-                : 'Order Confirmed'}
-            </h3>
-            {step === 'cart' && totalItemsCount > 0 && (
-              <span className="cart-count-badge">
-                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
-              </span>
-            )}
+      <div
+        style={{
+          width: 'min(480px, 94vw)',
+          height: '100%',
+          backgroundColor: 'var(--color-surface)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: 'var(--shadow-overlay)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Drawer Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--space-5) var(--space-6)',
+            borderBottom: '1px solid var(--color-line)',
+          }}
+        >
+          <div>
+            <h2 id="drawer-title" style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-ink)' }}>
+              {step === 'cart' ? 'Your Order' : 'Landed Checkout'}
+            </h2>
+            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}>
+              {items.length} {items.length === 1 ? 'item' : 'items'} in order
+            </span>
           </div>
-          <button className="cart-close-btn" aria-label="Close cart" onClick={onClose}>
-            ✕
+
+          <button onClick={onClose} aria-label="Close order drawer" className="btn-subtle" style={{ padding: '8px' }}>
+            <IconClose size={20} />
           </button>
         </div>
 
-        {/* Free Shipping Announcement Banner */}
-        {step !== 'success' && (
-          <div className="cart-shipping-banner">
-            <svg className="ic" viewBox="0 0 24 24">
-              <use href="#i-truck" />
-            </svg>
-            <span>
-              <strong>Free express delivery</strong> included to 90+ countries
-            </span>
+        {/* Free Shipping Progress Indicator */}
+        {items.length > 0 && (
+          <div style={{ padding: 'var(--space-3) var(--space-6)', backgroundColor: 'var(--color-surface-sunken)', borderBottom: '1px solid var(--color-line)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-caption)', marginBottom: '4px' }}>
+              <span style={{ color: 'var(--color-ink-muted)' }}>
+                {remainingForFreeShipping === 0
+                  ? 'Free International Shipping Unlocked!'
+                  : `Add $${remainingForFreeShipping} for Free International Shipping`}
+              </span>
+              <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--color-ink)' }}>
+                ${rawSubtotal} / ${freeShippingThreshold}
+              </span>
+            </div>
+            <div style={{ height: '4px', width: '100%', backgroundColor: 'rgba(18, 21, 22, 0.08)', borderRadius: 'var(--radius-round)', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.min(100, (rawSubtotal / freeShippingThreshold) * 100)}%`,
+                  backgroundColor: 'var(--color-accent)',
+                  transition: 'width var(--duration-base) var(--ease-out)',
+                }}
+              />
+            </div>
           </div>
         )}
 
-        {/* Step 1: Cart Items View */}
-        {step === 'cart' && (
-          <>
-            {items.length === 0 ? (
-              <div className="cart-empty-state">
-                <div className="cart-empty-icon">
-                  <svg className="ic" viewBox="0 0 24 24">
-                    <use href="#i-gift" />
-                  </svg>
-                </div>
-                <h4>Your cart is empty</h4>
-                <p>Explore trending collections and add your favorite items.</p>
-                <button className="btn p" onClick={handleContinueShopping}>
-                  Shop Trending Now
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="cart-items-list">
-                  {items.map((item) => (
-                    <div key={item.id} className="cart-item">
-                      <div className="cart-item-img" style={{ background: item.bg }}>
-                        <img src={item.image} alt={item.name} loading="lazy" />
+        {/* Drawer Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-6)' }}>
+          {items.length === 0 ? (
+            <div style={{ textAlign: 'center', paddingBlock: 'var(--space-16)' }}>
+              <p style={{ fontSize: 'var(--text-body)', color: 'var(--color-ink-muted)', marginBottom: 'var(--space-4)' }}>
+                Your order is currently empty.
+              </p>
+              <button onClick={onClose} className="btn-outline">
+                Browse Curated Aisles
+              </button>
+            </div>
+          ) : step === 'cart' ? (
+            /* Step 1: Cart Items List */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    gap: 'var(--space-3)',
+                    paddingBottom: 'var(--space-4)',
+                    borderBottom: '1px solid var(--color-line)',
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    style={{
+                      width: '68px',
+                      height: '68px',
+                      borderRadius: 'var(--radius-1)',
+                      objectFit: 'cover',
+                      backgroundColor: 'var(--color-surface-sunken)',
+                    }}
+                  />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>
+                          {item.name}
+                        </h4>
+                        <span style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}>
+                          {item.maker}
+                        </span>
                       </div>
-                      <div className="cart-item-details">
-                        <div className="cart-item-top">
-                          <span className="cart-item-category">{item.category}</span>
-                          <button
-                            className="cart-item-remove"
-                            aria-label={`Remove ${item.name}`}
-                            onClick={() => onRemoveItem(item.id)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <h5 className="cart-item-name">{item.name}</h5>
-                        <div className="cart-item-bottom">
-                          <span className="cart-item-price">
-                            ${(item.price * item.quantity).toLocaleString()}
-                          </span>
-                          <div className="cart-qty-control">
-                            <button
-                              aria-label="Decrease quantity"
-                              onClick={() => onUpdateQuantity(item.id, -1)}
-                            >
-                              -
-                            </button>
-                            <span className="cart-qty-value">{item.quantity}</span>
-                            <button
-                              aria-label="Increase quantity"
-                              onClick={() => onUpdateQuantity(item.id, 1)}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => onRemoveItem(item.id)}
+                        aria-label={`Remove ${item.name}`}
+                        className="btn-subtle"
+                        style={{ padding: '4px', color: 'var(--color-ink-subtle)' }}
+                      >
+                        <IconTrash size={16} />
+                      </button>
                     </div>
-                  ))}
+
+                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      {/* Quantity Controls */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid var(--color-line-strong)',
+                          borderRadius: 'var(--radius-1)',
+                          backgroundColor: 'var(--color-surface-sunken)',
+                        }}
+                      >
+                        <button
+                          onClick={() => onUpdateQuantity(item.id, -1)}
+                          aria-label="Decrease quantity"
+                          style={{ padding: '3px 8px' }}
+                        >
+                          <IconMinus size={12} />
+                        </button>
+                        <span className="tabular-nums" style={{ minWidth: '24px', textAlign: 'center', fontSize: 'var(--text-caption)', fontWeight: 600 }}>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => onUpdateQuantity(item.id, 1)}
+                          aria-label="Increase quantity"
+                          style={{ padding: '3px 8px' }}
+                        >
+                          <IconPlus size={12} />
+                        </button>
+                      </div>
+
+                      <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--color-ink)', fontSize: 'var(--text-body-sm)' }}>
+                        ${item.price * item.quantity}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+              ))}
 
-                {/* Footer summary */}
-                <div className="cart-footer">
-                  <div className="cart-summary-row">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="cart-summary-row">
-                    <span>Shipping</span>
-                    <span style={{ color: 'var(--mint)', fontWeight: 600 }}>FREE</span>
-                  </div>
-                  <div className="cart-summary-row total">
-                    <span>Total</span>
-                    <span className="total-amount">${subtotal.toLocaleString()}</span>
-                  </div>
-                  <button className="btn p cart-checkout-btn" onClick={handleStartCheckout}>
-                    Proceed to Checkout (${subtotal.toLocaleString()})
-                  </button>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {/* Step 2: Checkout Form View */}
-        {step === 'checkout' && (
-          <form className="cart-checkout-form" onSubmit={handlePlaceOrder}>
-            <button
-              type="button"
-              className="cart-back-btn"
-              onClick={handleBackToCart}
-            >
-              ← Back to items ({totalItemsCount})
-            </button>
-
-            <div className="checkout-section">
-              <h5>Shipping Address</h5>
-              <label>
-                Full Name
+              {/* Promo Code Form */}
+              <form onSubmit={handleApplyPromo} style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                <input
+                  type="text"
+                  placeholder="Promo code (e.g. GLOBAL10)"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    backgroundColor: 'var(--color-surface-sunken)',
+                    fontSize: 'var(--text-body-sm)',
+                  }}
+                />
+                <button type="submit" className="btn-outline" style={{ padding: '8px 14px' }}>
+                  Apply
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* Step 2: Shipping & Payment Form */
+            <form id="checkout-form" onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+                  Recipient Full Name
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Alex Morgan"
+                  placeholder="e.g. Henrik Lindqvist"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    fontSize: 'var(--text-body-sm)',
+                  }}
                 />
-              </label>
-              <label>
-                Email Address
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+                  Contact Email (for tracked receipt)
+                </label>
                 <input
                   type="email"
                   required
-                  placeholder="alex@example.com"
+                  placeholder="henrik@example.com"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    fontSize: 'var(--text-body-sm)',
+                  }}
                 />
-              </label>
-              <label>
-                Delivery Address
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+                  Delivery Street Address
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Street, City, Postal Code"
+                  placeholder="Mannerheimintie 14 B, Apt 3"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    fontSize: 'var(--text-body-sm)',
+                  }}
                 />
-              </label>
-              <label>
-                Country
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '4px' }}>
+                  Destination Country
+                </label>
                 <select
                   value={customerCountry}
                   onChange={(e) => setCustomerCountry(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    fontSize: 'var(--text-body-sm)',
+                    backgroundColor: 'var(--color-surface)',
+                  }}
                 >
-                  <option value="United States">United States</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Canada">Canada</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Japan">Japan</option>
-                  <option value="Other">Other (90+ Supported)</option>
+                  <option value="United States">United States (USD)</option>
+                  <option value="United Kingdom">United Kingdom (GBP)</option>
+                  <option value="Germany">Germany (EUR)</option>
+                  <option value="Finland">Finland (EUR)</option>
+                  <option value="Canada">Canada (CAD)</option>
+                  <option value="Japan">Japan (JPY)</option>
+                  <option value="Australia">Australia (AUD)</option>
                 </select>
-              </label>
+              </div>
+
+              {/* Payment Method Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+                  Pre-Authorized Payment Mode
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('card')}
+                    style={{
+                      padding: '8px',
+                      fontSize: 'var(--text-caption)',
+                      fontWeight: 600,
+                      borderRadius: 'var(--radius-1)',
+                      border: '1px solid',
+                      borderColor: paymentMethod === 'card' ? 'var(--color-accent)' : 'var(--color-line-strong)',
+                      backgroundColor: paymentMethod === 'card' ? 'var(--color-accent-soft)' : 'var(--color-surface)',
+                      color: paymentMethod === 'card' ? 'var(--color-accent)' : 'var(--color-ink)',
+                    }}
+                  >
+                    Credit Card
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('apple')}
+                    style={{
+                      padding: '8px',
+                      fontSize: 'var(--text-caption)',
+                      fontWeight: 600,
+                      borderRadius: 'var(--radius-1)',
+                      border: '1px solid',
+                      borderColor: paymentMethod === 'apple' ? 'var(--color-accent)' : 'var(--color-line-strong)',
+                      backgroundColor: paymentMethod === 'apple' ? 'var(--color-accent-soft)' : 'var(--color-surface)',
+                      color: paymentMethod === 'apple' ? 'var(--color-accent)' : 'var(--color-ink)',
+                    }}
+                  >
+                    Apple Pay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('transfer')}
+                    style={{
+                      padding: '8px',
+                      fontSize: 'var(--text-caption)',
+                      fontWeight: 600,
+                      borderRadius: 'var(--radius-1)',
+                      border: '1px solid',
+                      borderColor: paymentMethod === 'transfer' ? 'var(--color-accent)' : 'var(--color-line-strong)',
+                      backgroundColor: paymentMethod === 'transfer' ? 'var(--color-accent-soft)' : 'var(--color-surface)',
+                      color: paymentMethod === 'transfer' ? 'var(--color-accent)' : 'var(--color-ink)',
+                    }}
+                  >
+                    Direct Wire
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: 'var(--color-surface-sunken)', padding: '10px 12px', borderRadius: 'var(--radius-1)', fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)', display: 'flex', gap: '8px' }}>
+                <IconShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                <span>
+                  Encrypted TLS 1.3 transaction. Customs tariffs are pre-cleared with no postal collect surcharges.
+                </span>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* Drawer Footer Totals & Checkout Button */}
+        {items.length > 0 && (
+          <div style={{ padding: 'var(--space-6)', borderTop: '1px solid var(--color-line)', backgroundColor: 'var(--color-surface-raised)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', marginBottom: '4px' }}>
+              <span>Subtotal</span>
+              <span className="tabular-nums">${rawSubtotal}</span>
             </div>
 
-            <div className="checkout-section">
-              <h5>Payment Method</h5>
-              <div className="checkout-payment-opts">
-                <button
-                  type="button"
-                  className={paymentMethod === 'card' ? 'active' : ''}
-                  onClick={() => setPaymentMethod('card')}
-                >
-                  Credit / Debit Card
-                </button>
-                <button
-                  type="button"
-                  className={paymentMethod === 'apple' ? 'active' : ''}
-                  onClick={() => setPaymentMethod('apple')}
-                >
-                  Apple Pay
-                </button>
-                <button
-                  type="button"
-                  className={paymentMethod === 'google' ? 'active' : ''}
-                  onClick={() => setPaymentMethod('google')}
-                >
-                  Google Pay
-                </button>
+            {discountAmount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-body-sm)', color: 'var(--color-success)', marginBottom: '4px' }}>
+                <span>Promo Discount ({discountPercent}%)</span>
+                <span className="tabular-nums">-${discountAmount}</span>
               </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', marginBottom: '8px' }}>
+              <span>Landed Duties & Customs</span>
+              <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>Included (Pre-bonded)</span>
             </div>
 
-            <div className="cart-footer">
-              <div className="cart-summary-row total">
-                <span>Total to pay</span>
-                <span className="total-amount">${subtotal.toLocaleString()}</span>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-ink)', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-line)', marginBottom: 'var(--space-4)' }}>
+              <span>Landed Total</span>
+              <span className="tabular-nums">${finalTotal}</span>
+            </div>
+
+            {step === 'cart' ? (
               <button
-                type="submit"
-                className="btn p cart-checkout-btn"
-                disabled={isSubmitting}
+                onClick={() => setStep('checkout')}
+                className="btn-primary"
+                style={{ width: '100%', padding: '12px 20px', fontSize: 'var(--text-body)', justifyContent: 'center' }}
               >
-                {isSubmitting ? 'Processing Order...' : `Place Order ($${subtotal.toLocaleString()})`}
+                Proceed to Landed Checkout
+                <IconArrowRight size={18} />
               </button>
-            </div>
-          </form>
-        )}
-
-        {/* Step 3: Success Confirmation View */}
-        {step === 'success' && (
-          <div className="cart-success-view">
-            <div className="cart-success-badge">✓</div>
-            <h4>Order Confirmed!</h4>
-            <p className="order-num">
-              Order Reference: <strong>#{orderNumber}</strong>
-            </p>
-            <p className="order-desc">
-              Thank you for shopping at AGM. We have sent a confirmation email with your
-              tracking link. Average delivery time: 48 hours.
-            </p>
-
-            <div className="order-details-card">
-              <div className="order-row">
-                <span>Recipient:</span>
-                <strong>{customerName}</strong>
+            ) : (
+              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <button
+                  type="button"
+                  onClick={() => setStep('cart')}
+                  className="btn-outline"
+                  style={{ padding: '12px 16px' }}
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  form="checkout-form"
+                  disabled={isSubmitting}
+                  className="btn-primary"
+                  style={{ flex: 1, padding: '12px 20px', fontSize: 'var(--text-body)', justifyContent: 'center' }}
+                >
+                  {isSubmitting ? 'Securing Bond...' : `Place Landed Order · $${finalTotal}`}
+                </button>
               </div>
-              <div className="order-row">
-                <span>Country:</span>
-                <strong>{customerCountry}</strong>
-              </div>
-              <div className="order-row">
-                <span>Shipping:</span>
-                <strong style={{ color: 'var(--mint)' }}>Tracked Express (FREE)</strong>
-              </div>
-            </div>
-
-            <button className="btn p cart-checkout-btn" onClick={handleContinueShopping}>
-              Continue Shopping
-            </button>
+            )}
           </div>
         )}
-      </aside>
+      </div>
     </div>
   );
 };

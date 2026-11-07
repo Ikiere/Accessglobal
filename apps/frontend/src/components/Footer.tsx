@@ -1,88 +1,189 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { IconCheck, IconArrowRight } from './icons';
 
 interface FooterProps {
   onShowToast: (message: string) => void;
   onSelectCategory: (category: string) => void;
 }
 
-export const Footer = ({ onShowToast, onSelectCategory }: FooterProps) => {
-  const [email, setEmail] = useState('');
+export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory }) => {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [currency, setCurrency] = useState('USD');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
-    onShowToast('You are in. Check your inbox for your 10% code.');
-    setEmail('');
-  };
-
-  const handleCategoryClick = (category: string) => {
-    onSelectCategory(category);
-    const productsSection = document.getElementById('products');
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: 'smooth' });
+    if (newsletterEmail.trim() && newsletterEmail.includes('@')) {
+      setSubscribed(true);
+      onShowToast('Subscribed to Workshop Dispatch. Code GLOBAL10 emailed.');
+      setNewsletterEmail('');
+      setTimeout(() => setSubscribed(false), 3500);
+    } else {
+      onShowToast('Please provide a valid email address.');
     }
   };
 
   return (
-    <footer>
+    <footer style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-line)', paddingBlock: 'var(--space-16) var(--space-8)' }}>
       <div className="wrap">
-        <div className="fg">
-          <div className="fg-newsletter">
-            <h5>Get 10% off your first order</h5>
-            <p style={{ color: '#55587e' }}>
-              Join for early access to drops and deals.
+        <div className="footer-grid" style={{ display: 'grid', gap: 'var(--space-12)', marginBottom: 'var(--space-16)' }}>
+          
+          {/* Brand & Newsletter Column */}
+          <div style={{ maxWidth: '420px' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.625rem', fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 'var(--space-2)' }}>
+              AccessGlobal
+            </span>
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', lineHeight: '1.6', marginBottom: 'var(--space-6)' }}>
+              Connecting independent workshops in 28 countries directly with global buyers. Pre-bonded customs clearance, ethical manufacturing disclosures, and localized door-to-door transit.
             </p>
-            <form className="nl" id="nl" onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="you@email.com"
-                required
-                aria-label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button type="submit">Join</button>
+
+            {/* Newsletter Dispatch */}
+            <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <label htmlFor="newsletter-email" style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-subtle)', fontWeight: 600 }}>
+                Workshop Dispatch
+              </label>
+              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  required
+                  placeholder="Your email address..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: '1px solid var(--color-line-strong)',
+                    borderRadius: 'var(--radius-1)',
+                    fontSize: 'var(--text-body-sm)',
+                    backgroundColor: 'var(--color-surface-sunken)',
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ padding: '8px 16px', fontSize: 'var(--text-body-sm)' }}
+                >
+                  {subscribed ? <IconCheck size={16} /> : <IconArrowRight size={16} />}
+                </button>
+              </div>
+              <span style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}>
+                Fortnightly dispatch on workshop materials and logistics. No spam.
+              </span>
             </form>
           </div>
-          <div className="fg-links">
-            <div className="fg-col">
-              <h5>Shop</h5>
-              <ul>
-                <li onClick={() => handleCategoryClick('E-Bikes')}>E-Bikes</li>
-                <li onClick={() => handleCategoryClick('Clothing')}>Clothing</li>
-                <li onClick={() => handleCategoryClick('Shoes')}>Shoes</li>
-                <li onClick={() => handleCategoryClick('Appliances')}>Appliances</li>
-                <li onClick={() => handleCategoryClick('Perfumes')}>Perfumes</li>
+
+          {/* Directory Links Columns */}
+          <div className="footer-links-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-8)' }}>
+            {/* Aisles */}
+            <div>
+              <span style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, display: 'block', marginBottom: 'var(--space-3)' }}>
+                Aisles
+              </span>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
+                <li>
+                  <button onClick={() => onSelectCategory('E-Bikes')} className="btn-subtle" style={{ padding: 0 }}>
+                    E-Bikes & Mobility
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onSelectCategory('Clothing')} className="btn-subtle" style={{ padding: 0 }}>
+                    Crafted Apparel
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onSelectCategory('Shoes')} className="btn-subtle" style={{ padding: 0 }}>
+                    Bench-Made Footwear
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onSelectCategory('Appliances')} className="btn-subtle" style={{ padding: 0 }}>
+                    Living & Kitchen
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onSelectCategory('Perfumes')} className="btn-subtle" style={{ padding: 0 }}>
+                    Artisanal Scents
+                  </button>
+                </li>
               </ul>
             </div>
-            <div className="fg-col">
-              <h5>Company</h5>
-              <ul>
-                <li>About AGM</li>
-                <li>Sell with us</li>
-                <li>Careers</li>
-                <li>Press</li>
+
+            {/* Platform */}
+            <div>
+              <span style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, display: 'block', marginBottom: 'var(--space-3)' }}>
+                Integrity
+              </span>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
+                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>The AGM Standard</a></li>
+                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Customs Clearance</a></li>
+                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Workshop Vetting</a></li>
+                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>30-Day Inspection</a></li>
+                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Carbon Offset</a></li>
               </ul>
             </div>
-            <div className="fg-col">
-              <h5>Support</h5>
-              <ul>
-                <li>Track order</li>
-                <li>Returns</li>
-                <li>Shipping</li>
-                <li>Contact</li>
+
+            {/* Compliance */}
+            <div>
+              <span style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, display: 'block', marginBottom: 'var(--space-3)' }}>
+                Compliance
+              </span>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Privacy policy: Data minimization enforced')}>Privacy Policy</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Terms of service: Transparent bonded purchase')}>Terms of Trade</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('DSAR portal: Export or erase records anytime')}>DSAR & Data Rights</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Cookie status: Zero tracking cookies in use')}>Cookie Preferences</button></li>
               </ul>
             </div>
           </div>
+
         </div>
-        <div className="mega" aria-hidden="true">
-          AGM
-        </div>
-        <div className="copy">
-          <span>© 2026 Access Global Market. All rights reserved.</span>
-          <span>Privacy · Terms · Cookies</span>
+
+        {/* Bottom Utility Bar */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-4)', paddingTop: 'var(--space-6)', borderTop: '1px solid var(--color-line)', fontSize: 'var(--text-caption)', color: 'var(--color-ink-subtle)' }}>
+          <div>
+            © {new Date().getFullYear()} AccessGlobal Market Inc. All rights reserved. Produced under the megacraftui standard.
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <span>Settlement Currency:</span>
+              <select
+                value={currency}
+                onChange={(e) => {
+                  setCurrency(e.target.value);
+                  onShowToast(`Display currency updated to ${e.target.value}`);
+                }}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: 'var(--radius-1)',
+                  border: '1px solid var(--color-line-strong)',
+                  backgroundColor: 'var(--color-surface)',
+                  fontSize: 'var(--text-caption)',
+                }}
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="JPY">JPY (¥)</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @media (min-width: 900px) {
+          .footer-grid {
+            grid-template-columns: 5fr 7fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .footer-links-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 };

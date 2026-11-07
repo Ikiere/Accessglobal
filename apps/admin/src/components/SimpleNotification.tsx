@@ -25,7 +25,7 @@ const FollowNotification = ({
     <div className="flex items-center justify-between dark:bg-black bg-white/30 py-5 px-5">
       {/* left */}
       <div className="flex gap-3 items-center">
-        <img src={imgSrc} alt="user" className="w-12 h-12 rounded-full" />
+        <img src={imgSrc} alt={username} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
         <div className="flex flex-col">
           <p className="dark:text-whiteSecondary text-blackPrimary">
             <b>@{username}</b> {action}
