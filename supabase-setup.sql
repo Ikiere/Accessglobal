@@ -41,8 +41,15 @@ CREATE TABLE IF NOT EXISTS public.users (
     role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
     avatar TEXT,
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'pending')),
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Safely ensure columns exist if public.users was already created in earlier migrations
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar TEXT;
 
 -- 4. Orders Table
 CREATE TABLE IF NOT EXISTS public.orders (

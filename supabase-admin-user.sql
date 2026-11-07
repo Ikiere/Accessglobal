@@ -19,6 +19,14 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Safely add any missing columns in case public.users already existed from an earlier schema
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar TEXT;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
 -- Enable RLS on users table
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
@@ -134,4 +142,3 @@ BEGIN
         RAISE NOTICE 'Administrator account % updated with admin role and active password.', admin_email;
     END IF;
 END $$;
-
