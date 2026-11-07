@@ -145,8 +145,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 55,
-        backgroundColor: 'rgba(18, 21, 22, 0.45)',
+        zIndex: 80,
+        backgroundColor: 'rgba(18, 21, 22, 0.55)',
         display: 'flex',
         justifyContent: 'flex-end',
       }}

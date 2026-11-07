@@ -13,6 +13,7 @@ import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
 import { ViewMode } from './components/CategorySelector';
 import { SitePreloader } from './components/SitePreloader';
+import { SignOutConfirmModal } from './components/SignOutConfirmModal';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -42,6 +43,7 @@ function AppContent() {
 
   // Drawers & Notifications
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Layout View Mode (Editorial Grid vs Technical Spec Table)
@@ -149,7 +151,7 @@ function AppContent() {
           setAuthMode(mode);
           setAuthModalOpen(true);
         }}
-        onLogout={handleLogout}
+        onLogout={() => setSignOutModalOpen(true)}
         cartCount={totalCartCount}
       />
 
@@ -195,7 +197,7 @@ function AppContent() {
                   setAuthMode(mode);
                   setAuthModalOpen(true);
                 }}
-                onLogout={handleLogout}
+                onLogout={() => setSignOutModalOpen(true)}
                 onShowReceipt={(order) => setConfirmedOrder(order)}
                 onShowToast={(msg) => setToastMessage(msg)}
               />
@@ -217,7 +219,7 @@ function AppContent() {
           setAuthMode(mode);
           setAuthModalOpen(true);
         }}
-        onLogout={handleLogout}
+        onLogout={() => setSignOutModalOpen(true)}
         cartCount={totalCartCount}
         onOpenCart={() => setIsCartOpen(true)}
       />
@@ -261,6 +263,14 @@ function AppContent() {
 
       {/* Status Toasts */}
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+
+      {/* Customized Sign Out Confirmation Dialog */}
+      <SignOutConfirmModal
+        isOpen={signOutModalOpen}
+        onClose={() => setSignOutModalOpen(false)}
+        onConfirm={handleLogout}
+        userName={currentUser}
+      />
 
       {/* Global Animated Site Preloader */}
       <SitePreloader isLoaded={!isLoadingProducts} minDuration={750} />

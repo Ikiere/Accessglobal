@@ -34,3 +34,4 @@ export { default as RegisterComponent } from "./RegisterComponent";
 export { default as AuthGuard } from "./AuthGuard";
 export { default as BrandLogo } from "./BrandLogo";
 export { default as SitePreloader } from "./SitePreloader";
+export { default as SignOutConfirmModal } from "./SignOutConfirmModal";

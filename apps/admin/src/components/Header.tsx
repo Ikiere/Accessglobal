@@ -15,6 +15,7 @@ import { setSidebar } from "../features/dashboard/dashboardSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { toggleDarkMode } from "../features/darkMode/darkModeSlice";
 import { api, UserItem } from "../services/api";
+import { SignOutConfirmModal } from "./SignOutConfirmModal";
 
 const Header: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -25,6 +26,7 @@ const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [storefrontUrl, setStorefrontUrl] = useState("/");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -190,8 +192,11 @@ const Header: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    setShowSignOutModal(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                 >
                   <HiOutlineArrowRightOnRectangle className="text-sm" />
                   <span>Sign Out</span>
@@ -201,6 +206,14 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Customized Admin Sign Out Confirmation Modal */}
+      <SignOutConfirmModal
+        isOpen={showSignOutModal}
+        onClose={() => setShowSignOutModal(false)}
+        onConfirm={handleLogout}
+        adminName={userName}
+      />
     </header>
   );
 };

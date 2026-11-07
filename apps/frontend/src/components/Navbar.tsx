@@ -44,10 +44,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       style={{
         position: 'sticky',
         top: 0,
-        zIndex: 100,
+        zIndex: 40,
         width: '100%',
-        backgroundColor: 'var(--color-surface)',
+        backgroundColor: 'rgba(251, 248, 243, 0.96)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--color-line)',
+        boxShadow: '0 1px 3px rgba(18, 67, 48, 0.04)',
       }}
     >
       <div

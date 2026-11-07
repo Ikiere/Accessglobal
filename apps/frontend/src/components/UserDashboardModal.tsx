@@ -127,7 +127,7 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 65,
+        zIndex: 90,
         backgroundColor: 'rgba(18, 21, 22, 0.55)',
         display: 'flex',
         alignItems: 'center',

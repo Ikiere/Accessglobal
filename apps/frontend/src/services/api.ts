@@ -1,4 +1,4 @@
-import { Product, catalogProducts } from '../data/products';
+import { Product, ProductSpec, catalogProducts } from '../data/products';
 import { getSupabase } from './supabaseClient';
 import { emailService, OrderConfirmationData } from './emailService';
 
@@ -14,6 +14,7 @@ export interface ApiProduct {
   category: string;
   inStock?: number;
   popularity?: number;
+  specs?: ProductSpec[];
 }
 
 export interface AuthUser {
@@ -49,6 +50,7 @@ export interface ApiOrderPayload {
 
 // In-memory / localStorage cache for pending OTP verifications
 interface PendingOtpData {
+  userId?: string;
   email: string;
   name: string;
   otp: string;
@@ -57,8 +59,9 @@ interface PendingOtpData {
 
 const OTP_STORAGE_KEY = 'accessglobal_pending_otp';
 
-function savePendingOtp(email: string, name: string, otp: string): void {
+function savePendingOtp(email: string, name: string, otp: string, userId?: string): void {
   const data: PendingOtpData = {
+    userId,
     email: email.trim().toLowerCase(),
     name,
     otp,
@@ -91,6 +94,49 @@ function mapApiProductToProduct(item: any): Product {
   const makerName = originParts[0]?.trim() || rawMaker;
   const makerOrigin = originParts[1]?.replace(')', '').trim() || 'Global Workshop Hub';
 
+  // Parse specifications
+  let specs: ProductSpec[] = [];
+  if (Array.isArray(item.specs) && item.specs.length > 0) {
+    specs = item.specs.filter((s: any) => s && s.label && s.value);
+  } else if (typeof item.specs === 'string' && item.specs.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(item.specs);
+      if (Array.isArray(parsed)) {
+        specs = parsed.filter((s: any) => s && s.label && s.value);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // If no specs array, check if embedded in description markdown
+  let cleanDescription = item.description || 'Precision crafted with verified materials and direct-from-workshop provenance.';
+  if (specs.length === 0 && item.description && item.description.includes('Technical Specifications')) {
+    const parts = item.description.split(/### Technical Specifications/i);
+    cleanDescription = parts[0].trim();
+    const specBlock = parts[1] || '';
+    const lines = specBlock.split('\n');
+    for (const line of lines) {
+      const match = line.match(/[•\-*]?\s*\*\*([^*]+)\*\*:\s*(.+)/);
+      if (match) {
+        specs.push({ label: match[1].trim(), value: match[2].trim() });
+      }
+    }
+  } else if (item.description && item.description.includes('### Technical Specifications')) {
+    cleanDescription = item.description.split(/### Technical Specifications/i)[0].trim();
+  }
+
+  // Fallback default specs if none configured
+  if (specs.length === 0) {
+    specs = [
+      { label: 'Origin', value: makerOrigin },
+      { label: 'Maker', value: makerName },
+      { label: 'Rating', value: `${item.rating || 5.0} / 5.0` },
+      { label: 'Warranty', value: '3-Year Limited' },
+      { label: 'Stock Level', value: item.stock !== undefined ? `${item.stock} units ready` : 'Available' },
+    ];
+  }
+
   return {
     id: String(item.id),
     name: item.title || item.name || 'Workshop Creation',
@@ -100,16 +146,10 @@ function mapApiProductToProduct(item: any): Product {
     price: Number(item.price || 0),
     badge: (item.rating && Number(item.rating) >= 4.9) ? 'Flagship Edition' : 'Verified Maker',
     image: item.main_image || item.mainImage || item.image_url || 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80',
-    description: item.description || 'Precision crafted with verified materials and direct-from-workshop provenance.',
+    description: cleanDescription,
     leadTime: 'Pre-cleared · Ships in 48h',
     inStock: item.stock === undefined ? true : Number(item.stock) > 0,
-    specs: [
-      { label: 'Origin', value: makerOrigin },
-      { label: 'Maker', value: makerName },
-      { label: 'Rating', value: `${item.rating || 5.0} / 5.0` },
-      { label: 'Warranty', value: '3-Year Limited' },
-      { label: 'Stock Level', value: item.stock !== undefined ? `${item.stock} units ready` : 'Available' },
-    ],
+    specs,
   };
 }
 
@@ -222,40 +262,66 @@ export const api = {
 
     // 1. Generate 6-digit OTP
     const otpCode = generateOtpCode();
-    savePendingOtp(cleanEmail, displayName, otpCode);
 
-    // 2. Dispatch OTP via Resend email template
-    const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
-
-    // 3. Initiate signup in Supabase Auth if connected
+    // 2. Initiate signup in Supabase Auth if connected
     let userId = `usr-${Date.now()}`;
     let token = `pending-${Date.now()}`;
 
     if (supabase) {
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: {
-              name: displayName,
-              role: 'user',
-            },
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            name: displayName,
+            role: 'user',
           },
-        });
-        if (error) {
-          // If already registered
-          if (error.message.toLowerCase().includes('already registered')) {
-            throw new Error('An account with this email already exists. Please sign in instead.');
-          }
+        },
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes('already registered')) {
+          throw new Error('An account with this email already exists. Please sign in instead.');
         }
-        if (data?.user?.id) userId = data.user.id;
-        if (data?.session?.access_token) token = data.session.access_token;
-      } catch (err: any) {
-        if (err.message?.includes('already exists')) throw err;
-        console.warn('[DirectSupabase] auth.signUp warning:', err.message);
+        throw new Error(error.message || 'Registration failed. Please check your details.');
+      }
+
+      if (data?.user?.id) {
+        userId = data.user.id;
+      }
+      if (data?.session?.access_token) {
+        token = data.session.access_token;
+      }
+
+      // Upsert record directly into public.users so the admin dashboard reflects the registration immediately
+      try {
+        const { error: dbError } = await supabase.from('users').upsert(
+          [
+            {
+              id: userId,
+              name: displayName,
+              email: cleanEmail,
+              role: 'user',
+              status: 'active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: 'email' }
+        );
+        if (dbError) {
+          console.warn('[DirectSupabase] public.users upsert warning:', dbError.message);
+        }
+      } catch (dbErr) {
+        console.warn('[DirectSupabase] Failed to write user to public.users:', dbErr);
       }
     }
+
+    // Save pending OTP with resolved userId
+    savePendingOtp(cleanEmail, displayName, otpCode, userId);
+
+    // 3. Dispatch OTP via Resend email template
+    const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
 
     const user: AuthUser = {
       id: userId,
@@ -297,12 +363,22 @@ export const api = {
       } catch {
         // Fallback: Proceed with verified session
       }
+
+      // Ensure public.users reflects verified status
+      try {
+        await supabase.from('users').update({
+          status: 'active',
+          updated_at: new Date().toISOString(),
+        }).eq('email', cleanEmail);
+      } catch (dbErr) {
+        console.warn('[DirectSupabase] Failed to update user status in public.users:', dbErr);
+      }
     }
 
     // Success: activate account
     localStorage.removeItem(OTP_STORAGE_KEY);
     const user: AuthUser = {
-      id: `usr-${Date.now()}`,
+      id: pending.userId || `usr-${Date.now()}`,
       name: pending.name,
       email: cleanEmail,
       role: 'user',
@@ -318,7 +394,8 @@ export const api = {
   async resendOtp(email: string, name: string): Promise<{ success: boolean; emailResult: any; newCode: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const newOtp = generateOtpCode();
-    savePendingOtp(cleanEmail, name, newOtp);
+    const pending = getPendingOtp(cleanEmail);
+    savePendingOtp(cleanEmail, name, newOtp, pending?.userId);
 
     // Also request native Supabase resend if client exists
     const supabase = getSupabase();

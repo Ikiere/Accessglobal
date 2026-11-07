@@ -28,6 +28,7 @@ export interface ProductItem {
   category: string;
   inStock: number;
   popularity: number;
+  specs?: Array<{ label: string; value: string }>;
 }
 
 export interface CategoryItem {
@@ -501,6 +502,7 @@ CREATE TABLE IF NOT EXISTS orders (
         category: data.category || 'General',
         inStock: Number(data.stock || 10),
         popularity: Number(data.popularity || 85),
+        specs: data.specs,
       },
     };
   }
@@ -525,7 +527,7 @@ CREATE TABLE IF NOT EXISTS orders (
       return { product: created };
     }
 
-    const payload = {
+    const payload: any = {
       title: product.title,
       slug: product.slug || product.title?.toLowerCase().replace(/\s+/g, '-') || `prod-${Date.now()}`,
       description: product.description,
@@ -537,9 +539,18 @@ CREATE TABLE IF NOT EXISTS orders (
       rating: product.rating || 5.0,
       popularity: product.popularity || 50,
     };
+    if (product.specs && Array.isArray(product.specs)) {
+      payload.specs = product.specs;
+    }
 
-    const { data, error } = await supabase.from('products').insert([payload]).select().single();
-    if (error) throw new Error(error.message);
+    let insertRes = await supabase.from('products').insert([payload]).select().single();
+    if (insertRes.error && insertRes.error.message.includes('specs')) {
+      // Column specs might not exist in database yet, retry without specs column
+      delete payload.specs;
+      insertRes = await supabase.from('products').insert([payload]).select().single();
+    }
+    if (insertRes.error) throw new Error(insertRes.error.message);
+    const data = insertRes.data;
 
     return {
       product: {
@@ -577,9 +588,15 @@ CREATE TABLE IF NOT EXISTS orders (
     if (updates.inStock !== undefined) payload.stock = updates.inStock;
     if (updates.manufacturer) payload.manufacturer = updates.manufacturer;
     if (updates.category) payload.category = updates.category;
+    if (updates.specs) payload.specs = updates.specs;
 
-    const { data, error } = await supabase.from('products').update(payload).eq('id', id).select().single();
-    if (error) throw new Error(error.message);
+    let updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
+    if (updateRes.error && updateRes.error.message.includes('specs')) {
+      delete payload.specs;
+      updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
+    }
+    if (updateRes.error) throw new Error(updateRes.error.message);
+    const data = updateRes.data;
 
     return {
       product: {

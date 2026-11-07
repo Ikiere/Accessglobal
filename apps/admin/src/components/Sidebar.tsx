@@ -17,11 +17,13 @@ import { setSidebar } from "../features/dashboard/dashboardSlice";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { BrandLogo } from "./BrandLogo";
+import { SignOutConfirmModal } from "./SignOutConfirmModal";
 
 const Sidebar: React.FC = () => {
   const { isSidebarOpen } = useAppSelector((state) => state.dashboard);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [showSignOutModal, setShowSignOutModal] = React.useState(false);
 
   const handleLogout = () => {
     api.logout();
@@ -145,14 +147,22 @@ const Sidebar: React.FC = () => {
 
           {/* Logout / Switch Session */}
           <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+            onClick={() => setShowSignOutModal(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
           >
             <HiOutlineArrowRightOnRectangle className="text-sm" />
             <span>Sign Out</span>
           </button>
         </div>
       </div>
+
+      {/* Customized Admin Sign Out Confirmation Modal */}
+      <SignOutConfirmModal
+        isOpen={showSignOutModal}
+        onClose={() => setShowSignOutModal(false)}
+        onConfirm={handleLogout}
+        adminName="Administrator"
+      />
     </aside>
   );
 };

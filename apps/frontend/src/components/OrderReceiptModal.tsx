@@ -40,7 +40,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 70,
+        zIndex: 90,
         backgroundColor: 'rgba(18, 21, 22, 0.6)',
         display: 'flex',
         alignItems: 'center',

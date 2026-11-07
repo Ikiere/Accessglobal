@@ -33,9 +33,13 @@ CREATE TABLE IF NOT EXISTS public.products (
     category TEXT NOT NULL,
     in_stock INTEGER DEFAULT 1,
     popularity INTEGER DEFAULT 0,
+    specs JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure specs column exists on pre-existing products table
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS specs JSONB DEFAULT '[]'::jsonb;
 
 -- 4. Users Table
 CREATE TABLE IF NOT EXISTS public.users (
@@ -115,6 +119,12 @@ DO $$ BEGIN
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Users Profile') THEN
         CREATE POLICY "Public Read Users Profile" ON public.users FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert Users') THEN
+        CREATE POLICY "Public Insert Users" ON public.users FOR INSERT WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Users') THEN
+        CREATE POLICY "Public Update Users" ON public.users FOR UPDATE USING (true);
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins Full Control Users') THEN
         CREATE POLICY "Admins Full Control Users" ON public.users FOR ALL USING (true);
