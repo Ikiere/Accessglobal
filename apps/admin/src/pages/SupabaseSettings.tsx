@@ -90,12 +90,13 @@ export const SupabaseSettings: React.FC = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to disconnect Supabase? Disconnecting will unbind your database and require completing the installation setup wizard again.')) {
+    if (!window.confirm('Are you sure you want to disconnect Supabase? The backend will revert to the local resilient database.')) {
       return;
     }
     try {
       await api.disconnectSupabase();
-      navigate('/setup', { replace: true });
+      await fetchStatus();
+      setBanner({ type: 'success', text: 'Supabase credentials disconnected. Active store reverted to local database.' });
     } catch (err: any) {
       setBanner({ type: 'error', text: err.message || 'Failed to disconnect.' });
     }

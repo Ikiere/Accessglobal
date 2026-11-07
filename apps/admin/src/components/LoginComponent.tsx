@@ -23,29 +23,6 @@ export const LoginComponent: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkingSetup, setCheckingSetup] = useState<boolean>(true);
-
-  // If system requires setup or Supabase is not connected, redirect directly to /setup!
-  useEffect(() => {
-    let mounted = true;
-    api.getSetupStatus()
-      .then((status) => {
-        if (!mounted) return;
-        if (status.requiresSetup || !status.supabaseConfigured) {
-          navigate("/setup", { replace: true });
-          return;
-        }
-        setCheckingSetup(false);
-      })
-      .catch((err) => {
-        console.warn("[LoginComponent] Could not verify setup status:", err);
-        setCheckingSetup(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,14 +46,6 @@ export const LoginComponent: React.FC = () => {
     }
   };
 
-  if (checkingSetup) {
-    return (
-      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center text-white px-4">
-        <div className="w-12 h-12 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin mb-4" />
-        <span className="text-xs font-mono text-gray-400">Verifying Supabase connection...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-md mx-auto">

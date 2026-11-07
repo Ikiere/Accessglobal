@@ -163,7 +163,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* Maker Story and Provenance Feature */}
       <MakerFeature
-        onFilterMaker={() => {}}
+        onFilterMaker={() => { }}
       />
 
       {/* Standards & Guarantees Section */}
