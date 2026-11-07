@@ -8,7 +8,6 @@ import {
   HiOutlineInformationCircle,
   HiOutlineUser,
   HiOutlineXMark,
-  HiOutlineShieldCheck,
   HiOutlineArrowRightOnRectangle,
   HiOutlineBell,
 } from "react-icons/hi2";
@@ -129,22 +128,6 @@ const Sidebar: React.FC = () => {
 
         {/* Bottom card & session info */}
         <div className="p-3 border-t border-gray-200/80 dark:border-white/[0.06] space-y-2">
-          {/* Supabase safe vault pill */}
-          <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-gray-900 dark:text-white flex items-center gap-1">
-                  <HiOutlineShieldCheck className="text-emerald-500 text-xs" /> AES-256 Vault
-                </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Zero Public Exposure</span>
-              </div>
-            </div>
-          </div>
-
           {/* Logout / Switch Session */}
           <button
             onClick={() => setShowSignOutModal(true)}

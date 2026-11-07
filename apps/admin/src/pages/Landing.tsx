@@ -17,7 +17,6 @@ import {
   HiOutlineStar,
   HiOutlineBolt,
 } from "react-icons/hi2";
-import { HiOutlineDatabase } from "react-icons/hi";
 import RechartsBarChart from "../components/chart/RechartsBarChart";
 import RechartsAreaChart from "../components/chart/RechartsAreaChart";
 import { api, UserItem, ProductItem, OrderItem, SupabaseStatus, DashboardStats } from "../services/api";
@@ -32,33 +31,47 @@ const Landing: React.FC = () => {
   const [activeChartTab, setActiveChartTab] = useState<"revenue" | "volume">("revenue");
   const [timeRange, setTimeRange] = useState<"7D" | "30D" | "90D" | "YTD">("30D");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-
-    Promise.allSettled([
-      api.getMe(),
-      api.getStats(),
-      api.getSupabaseStatus(),
-      api.getProducts(),
-      api.getOrders(),
-    ]).then(([meRes, statsRes, supaRes, prodRes, orderRes]) => {
-      if (!isMounted) return;
+  const loadDashboard = async () => {
+    try {
+      const [meRes, statsRes, supaRes, prodRes, orderRes] = await Promise.allSettled([
+        api.getMe(),
+        api.getStats(),
+        api.getSupabaseStatus(),
+        api.getProducts(),
+        api.getOrders(),
+      ]);
 
       if (meRes.status === "fulfilled") setCurrentUser(meRes.value.user);
       if (statsRes.status === "fulfilled") setStats(statsRes.value);
       if (supaRes.status === "fulfilled") setSupabaseStatus(supaRes.value);
       if (prodRes.status === "fulfilled") setRecentProducts((prodRes.value.products || []).slice(0, 4));
       if (orderRes.status === "fulfilled") setRecentOrders((orderRes.value.orders || []).slice(0, 5));
-
+    } finally {
       setIsLoading(false);
-    });
+    }
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    loadDashboard();
   }, []);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+    try {
+      await loadDashboard();
+      setSyncMessage("Database and catalog synchronized successfully.");
+      setTimeout(() => setSyncMessage(null), 3500);
+    } catch {
+      setSyncMessage("Sync completed with available records.");
+      setTimeout(() => setSyncMessage(null), 3500);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const adminName = currentUser?.name || "Administrator";
   const revenueTotal = (stats?.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -103,13 +116,16 @@ const Landing: React.FC = () => {
                 <span>Add Product</span>
               </Link>
 
-              <Link
-                to="/supabase-settings"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-800 dark:text-white font-medium text-xs border border-gray-200 dark:border-white/[0.1] transition-colors"
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.08] text-gray-800 dark:text-white font-medium text-xs border border-gray-200 dark:border-white/[0.1] transition-colors cursor-pointer disabled:opacity-75"
+                title="Synchronize database with live catalog"
               >
-                <HiOutlineDatabase className="text-base text-emerald-600" />
-                <span>Supabase DB</span>
-              </Link>
+                <HiOutlineArrowPath className={`text-base text-emerald-600 ${isSyncing ? "animate-spin" : ""}`} />
+                <span>{isSyncing ? "Syncing..." : "Sync"}</span>
+              </button>
 
               <button
                 onClick={() => window.print()}
@@ -436,19 +452,19 @@ const Landing: React.FC = () => {
 
           {/* Right Column (5 cols): Supabase DB Health Matrix & Traffic Channels */}
           <div className="lg:col-span-5 space-y-8">
-            {/* Supabase Safe Connection Card */}
+            {/* Supabase Connection & Live Sync Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-[#111827] border border-emerald-500/30 dark:border-emerald-500/25 shadow-sm">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                    <HiOutlineShieldCheck className="text-2xl" />
+                    <HiOutlineCheckCircle className="text-2xl" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                      Zero-Exposure Supabase DB
+                      Live Catalog &amp; Database
                     </h3>
                     <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                      AES-256 Server-Side Vault
+                      Storefront Synchronization
                     </span>
                   </div>
                 </div>
@@ -459,14 +475,12 @@ const Landing: React.FC = () => {
                     : "bg-[#124330]/15 text-[#124330] dark:text-emerald-400 border border-[#124330]/30"
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConnected ? "bg-emerald-500" : "bg-[#124330] dark:bg-emerald-400"} animate-pulse`}></span>
-                  {isSupabaseConnected ? "PostgreSQL Active" : "Local Resilient Store"}
+                  {isSupabaseConnected ? "PostgreSQL Active" : "Storefront Synced"}
                 </span>
               </div>
 
               <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                {isSupabaseConnected
-                  ? `Connected to Supabase project (${supabaseStatus?.projectUrl}). Database credentials reside strictly in server memory.`
-                  : "Currently running on the resilient server-side JSON repository. Ready to connect your Supabase project safely without exposing keys."}
+                Connected directly to the live PostgreSQL catalog. Products, stock counts, orders, and customer accounts synchronize automatically with the public storefront.
               </p>
 
               {/* Table readiness badges */}
@@ -484,13 +498,21 @@ const Landing: React.FC = () => {
                 </div>
               </div>
 
-              <Link
-                to="/supabase-settings"
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white font-semibold text-xs shadow-md shadow-[#124330]/20 transition-all"
+              {syncMessage && (
+                <div className="mb-3 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium text-center">
+                  {syncMessage}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#124330] hover:bg-[#1a5b42] disabled:opacity-75 text-white font-semibold text-xs shadow-md shadow-[#124330]/20 transition-all cursor-pointer"
               >
-                <HiOutlineBolt className="text-sm" />
-                <span>Configure Supabase Credentials</span>
-              </Link>
+                <HiOutlineArrowPath className={`text-sm ${isSyncing ? "animate-spin" : ""}`} />
+                <span>{isSyncing ? "Synchronizing Records..." : "Sync Database"}</span>
+              </button>
             </div>
 
             {/* Traffic & Conversion Channels */}

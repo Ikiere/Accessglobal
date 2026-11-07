@@ -1,3 +1,2 @@
-export { default as LineGraph } from "./LineGraph";
-export { default as PieChart } from "./PieChart";
-export { default as BarChart } from "./BarChart";
+export { default as RechartsAreaChart } from "./RechartsAreaChart";
+export { default as RechartsBarChart } from "./RechartsBarChart";

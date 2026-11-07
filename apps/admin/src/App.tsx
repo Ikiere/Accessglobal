@@ -14,7 +14,6 @@ import {
   HelpDesk,
   HomeLayout,
   Landing,
-  LandingV2,
   Login,
   Notifications,
   Orders,
@@ -27,10 +26,6 @@ import {
 import { AuthGuard } from "./components";
 
 const router = createBrowserRouter([
-  {
-    path: "/setup",
-    element: <Navigate to="/" replace />,
-  },
   {
     path: "/login",
     element: <Login />,
@@ -50,10 +45,6 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Landing />,
-      },
-      {
-        path: "/landing-v2",
-        element: <LandingV2 />,
       },
       {
         path: "/products",
@@ -126,10 +117,6 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: <Profile />,
-      },
-      {
-        path: "/supabase-settings",
-        element: <Navigate to="/" replace />,
       },
     ],
   },

@@ -172,22 +172,40 @@ const EditOrder = () => {
                   <div className="mt-4 flex flex-col gap-5 max-[450px]:items-start">
                     <div className="flex justify-between items-center max-[450px]:flex-col">
                       <div className="flex items-center gap-3 max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (1).jpg" alt="Samsung Galaxy Tab 7" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
-                      <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 7</span>
-                      </div>
-                      <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 2</span>
-                    </div>
-                    <div className="flex justify-between items-center max-[450px]:flex-col">
-                      <div className="flex items-center gap-3  max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (2).jpg" alt="Samsung Galaxy Tab 8" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
-                      <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 8</span>
+                        <img
+                          src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=200&auto=format&fit=crop&q=80"
+                          alt="Volt X1 Commuter E-Bike"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                        <span className="dark:text-whiteSecondary text-blackPrimary font-medium">Volt X1 Commuter E-Bike</span>
                       </div>
                       <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 1</span>
                     </div>
                     <div className="flex justify-between items-center max-[450px]:flex-col">
-                      <div className="flex items-center gap-3  max-[450px]:flex-col">
-                      <img src="/src/assets/tablet (3).jpg" alt="Samsung Galaxy Tab 9" width={48} height={48} className="w-12 h-12 object-cover rounded-lg" />
-                      <span className="dark:text-whiteSecondary text-blackPrimary">Samsung Galaxy Tab 9</span>
+                      <div className="flex items-center gap-3 max-[450px]:flex-col">
+                        <img
+                          src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&auto=format&fit=crop&q=80"
+                          alt="French Linen Belted Dress"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                        <span className="dark:text-whiteSecondary text-blackPrimary font-medium">French Linen Belted Dress</span>
+                      </div>
+                      <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 2</span>
+                    </div>
+                    <div className="flex justify-between items-center max-[450px]:flex-col">
+                      <div className="flex items-center gap-3 max-[450px]:flex-col">
+                        <img
+                          src="https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=200&auto=format&fit=crop&q=80"
+                          alt="Horween Derby Oxford Shoes"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                        <span className="dark:text-whiteSecondary text-blackPrimary font-medium">Horween Derby Oxford Shoes</span>
                       </div>
                       <span className="dark:text-whiteSecondary text-blackPrimary">Quantity: 1</span>
                     </div>

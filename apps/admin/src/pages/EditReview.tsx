@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 
 const EditReview = () => {
+  const [reviewImage, setReviewImage] = useState("");
   const [inputObject, setInputObject] = useState({
     product: "Samsung Galaxy S21 Ultra 5G",
     rating: 5,
@@ -100,18 +101,12 @@ const EditReview = () => {
 
             {/* Upload Review Image */}
             <div>
-              <h3 className="text-2xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Upload review images
-              </h3>
-              <ImageUpload />
-
-              <div className="flex justify-center gap-x-2 mt-5 flex-wrap">
-                <img
-                  src="/src/assets/phone 1.jpg"
-                  alt=""
-                  className="w-36 h-32"
-                />
-              </div>
+              <ImageUpload
+                value={reviewImage}
+                onChange={setReviewImage}
+                label="Customer Review Photo"
+                helperText="Upload or link photos submitted with customer product review."
+              />
             </div>
           </div>
         </div>

@@ -28,9 +28,6 @@ export default {
         "custom-white": "0px 4px 10px 0px rgba(255, 255, 255, 0.90)",
         "premium-card": "0 4px 20px -2px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)",
       },
-      backgroundImage: {
-        "login-background": "url('/src/assets/dark login bg 1.jpg')",
-      },
     },
   },
   plugins: [],

@@ -1,5 +1,4 @@
 import React from "react";
-import { HiOutlineShieldCheck, HiOutlineSignal } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 
 const Footer: React.FC = () => {
@@ -9,27 +8,16 @@ const Footer: React.FC = () => {
         <div className="flex items-center gap-3">
           <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            AccessGlobal Enterprise
-          </span>
-          <span className="text-gray-300 dark:text-gray-600">|</span>
-          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-            <HiOutlineSignal className="text-sm" /> All Systems Operational
-          </span>
-          <span className="hidden sm:inline text-gray-300 dark:text-gray-600">|</span>
-          <span className="hidden sm:inline flex items-center gap-1 text-[#124330] dark:text-emerald-400 font-medium">
-            <HiOutlineShieldCheck className="text-sm" /> AES-256 Vault Active
+            AccessGlobal Enterprise Operations
           </span>
         </div>
 
         <div className="flex items-center gap-5">
-          <Link to="/supabase-settings" className="hover:text-gray-900 dark:hover:text-white transition-colors">
-            Database Settings
-          </Link>
           <Link to="/help-desk" className="hover:text-gray-900 dark:hover:text-white transition-colors">
-            Documentation
+            Documentation &amp; Runbooks
           </Link>
           <span className="text-gray-400 dark:text-gray-500">
-            © {new Date().getFullYear()} AccessGlobal Technologies Inc.
+            &copy; {new Date().getFullYear()} AccessGlobal Technologies Inc. All rights reserved.
           </span>
         </div>
       </div>

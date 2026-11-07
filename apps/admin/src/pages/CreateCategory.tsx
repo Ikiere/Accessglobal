@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { HiOutlineSave } from "react-icons/hi";
-import { Sidebar } from "../components";
+import { Sidebar, ImageUpload } from "../components";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 
@@ -122,37 +122,13 @@ const CreateCategory: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Category Image
-              </h3>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 dark:text-whiteSecondary text-blackPrimary">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded border dark:border-gray-700 border-gray-300 dark:bg-zinc-800 bg-white dark:text-white text-black outline-none focus:border-emerald-500 text-sm"
-                />
-              </div>
-
-              <div className="border dark:border-gray-700 border-gray-300 rounded-lg p-4 dark:bg-zinc-800/40 bg-gray-50 flex flex-col items-center justify-center">
-                <span className="text-xs font-semibold dark:text-gray-400 text-gray-500 mb-3 uppercase tracking-wider">
-                  Image Preview
-                </span>
-                <img
-                  src={imageUrl}
-                  alt="Category Preview"
-                  className="w-48 h-48 object-cover rounded-lg shadow-md border dark:border-gray-700 border-gray-200"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600";
-                  }}
-                />
-              </div>
+            <div className="space-y-4">
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                label="Category Cover Image"
+                helperText="Upload photography or provide a direct image link."
+              />
             </div>
           </div>
         </form>

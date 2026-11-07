@@ -1,44 +1,52 @@
-// *********************
-// Role of the component: Follow notification component that displays the follow notification
-// Name of the component: FollowNotification.tsx
-// Developer: Aleksandar Kuzmanovic
-// Version: 1.0
-// Component call: <SimpleNotification username="johndoe" imgSrc="/src/assets/random user 1.jpg" date="Thursday 4:20pm" hoursAgo="2 hours ago" action="followed you" />
-// Input parameters: roles: { username: string; imgSrc: string; date: string; hoursAgo: string; action: string }
-// Output: FollowNotification component that displays the follow notification
-// *********************
+import React from "react";
 
-const FollowNotification = ({
+export interface SimpleNotificationProps {
+  imgSrc?: string;
+  username: string;
+  date: string;
+  hoursAgo: string;
+  action: string;
+}
+
+const SimpleNotification: React.FC<SimpleNotificationProps> = ({
   imgSrc,
   username,
   date,
   hoursAgo,
   action,
-}: {
-  imgSrc: string;
-  username: string;
-  date: string;
-  hoursAgo: string;
-  action: string;
 }) => {
+  const avatarUrl =
+    imgSrc ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`;
+
   return (
-    <div className="flex items-center justify-between dark:bg-black bg-white/30 py-5 px-5">
-      {/* left */}
-      <div className="flex gap-3 items-center">
-        <img src={imgSrc} alt={username} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
-        <div className="flex flex-col">
-          <p className="dark:text-whiteSecondary text-blackPrimary">
-            <b>@{username}</b> {action}
+    <div className="flex items-center justify-between dark:bg-[#111827] bg-white py-4 px-4 hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors rounded-xl">
+      <div className="flex gap-3.5 items-center min-w-0">
+        <img
+          src={avatarUrl}
+          alt={username}
+          width={44}
+          height={44}
+          className="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-white/[0.08]"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`;
+          }}
+        />
+        <div className="flex flex-col min-w-0">
+          <p className="text-xs text-gray-900 dark:text-gray-100">
+            <span className="font-bold text-[#124330] dark:text-emerald-400">@{username}</span>{" "}
+            {action}
           </p>
-          <p className="dark:text-whiteSecondary text-blackPrimary">{date}</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{date}</p>
         </div>
       </div>
-      {/* right */}
-      <div className="flex flex-col items-end gap-2">
-        <div className="w-3 h-3 dark:bg-blue-500 bg-blue-700 rounded-full"></div>
-        <p className="dark:text-whiteSecondary text-blackPrimary">{hoursAgo}</p>
+
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <div className="w-2 h-2 bg-[#124330] dark:bg-emerald-400 rounded-full"></div>
+        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">{hoursAgo}</p>
       </div>
     </div>
   );
 };
-export default FollowNotification;
+
+export default SimpleNotification;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sidebar } from "../components";
+import { Sidebar, ImageUpload } from "../components";
 import { HiOutlineSave } from "react-icons/hi";
 import {
   HiOutlineChevronRight,
@@ -505,37 +505,12 @@ const CreateProduct: React.FC = () => {
             {/* Right Column: Media Preview & Guidelines */}
             <div className="space-y-6">
               <div className="p-6 rounded-2xl bg-white dark:bg-[#111827] border border-[#E5DAC9] dark:border-white/[0.08] shadow-sm space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-[#124330] dark:text-emerald-400">
-                  Featured Image
-                </h2>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#121516] dark:text-gray-200 mb-1.5">
-                    Image Direct URL
-                  </label>
-                  <input
-                    type="url"
-                    value={mainImage}
-                    onChange={(e) => setMainImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FBF8F3] dark:bg-white/[0.03] border border-[#E5DAC9] dark:border-white/[0.08] text-xs font-mono text-[#121516] dark:text-white focus:outline-none focus:border-[#124330]"
-                  />
-                </div>
-
-                <div className="rounded-xl overflow-hidden border border-[#E5DAC9] dark:border-white/[0.08] bg-[#FBF8F3] dark:bg-white/[0.02] p-2 text-center">
-                  <span className="text-[10px] uppercase font-mono font-bold text-[#57625B] dark:text-gray-400 block mb-2">
-                    Live Display Preview
-                  </span>
-                  <img
-                    src={mainImage}
-                    alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg shadow-sm"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=600";
-                    }}
-                  />
-                </div>
+                <ImageUpload
+                  value={mainImage}
+                  onChange={setMainImage}
+                  label="Featured Product Image"
+                  helperText="Upload photography directly from your machine or provide an external CDN link."
+                />
               </div>
 
               {/* Provenance & E-Bike Standards Info */}

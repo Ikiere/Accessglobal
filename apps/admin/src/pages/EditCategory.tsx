@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const EditCategory = () => {
+  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80");
   const [inputObject, setInputObject] = useState({
     title: "PC",
     description: "This is a category for all computers.",
@@ -145,19 +146,12 @@ const EditCategory = () => {
 
             {/* right div */}
             <div>
-              <h3 className="text-2xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Category image
-              </h3>
-
-              <ImageUpload />
-
-              <div className="flex justify-center gap-x-2 mt-5 flex-wrap">
-                <img
-                  src="/src/assets/tablet (1).jpg"
-                  alt=""
-                  className="w-36 h-32"
-                />
-              </div>
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                label="Category Cover Image"
+                helperText="Upload photography or provide a direct image link."
+              />
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ import { roles } from "../utils/data";
 import { useEffect, useState } from "react";
 
 const EditUser = () => {
+  const [userAvatar, setUserAvatar] = useState("");
   const [inputObject, setInputObject] = useState({
     name: "Brent",
     lastname: "Fesi",
@@ -142,19 +143,12 @@ const EditUser = () => {
 
             {/* right div */}
             <div>
-              <h3 className="text-2xl font-bold leading-7 dark:text-whiteSecondary text-blackPrimary">
-                Upload user image
-              </h3>
-              <ImageUpload />
-
-              <div className="flex justify-center gap-x-2 mt-5 flex-wrap">
-                <img
-                  src="/src/assets/random user 1.jpg"
-                  alt=""
-                  className="w-36 h-32"
-                />
-              </div>
-
+              <ImageUpload
+                value={userAvatar}
+                onChange={setUserAvatar}
+                label="Customer Profile Avatar"
+                helperText="Upload custom portrait or provide an avatar URL."
+              />
             </div>
           </div>
         </div>
