@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconClose, IconUser, IconShieldCheck } from './icons';
+import { IconClose, IconUser } from './icons';
 import { api } from '../services/api';
 
 interface AuthModalProps {
@@ -224,7 +224,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {mode === 'otp'
               ? `Enter the 6-digit security code dispatched to ${email}`
               : mode === 'login'
-              ? 'Direct Supabase cloud authentication for orders and tracking'
+              ? 'Access your orders, saved delivery addresses, and tracking'
               : 'Direct-from-workshop ordering and pre-cleared customs clearance'}
           </p>
         </div>
@@ -533,12 +533,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
           </div>
         )}
-
-        {/* Security Reassurance */}
-        <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', fontSize: '0.6875rem', color: 'var(--color-ink-subtle)' }}>
-          <IconShieldCheck size={14} />
-          <span>Direct Supabase BaaS · Resend Authenticated OTP</span>
-        </div>
       </div>
     </div>
   );

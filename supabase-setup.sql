@@ -38,8 +38,10 @@ CREATE TABLE IF NOT EXISTS public.products (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Ensure specs column exists on pre-existing products table
+-- Ensure specs and stock columns exist on pre-existing products table
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS specs JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS in_stock INTEGER DEFAULT 1;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 1;
 
 -- 4. Users Table
 CREATE TABLE IF NOT EXISTS public.users (

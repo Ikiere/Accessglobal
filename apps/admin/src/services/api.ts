@@ -626,7 +626,7 @@ CREATE TABLE IF NOT EXISTS orders (
         slug: row.slug || String(row.id),
         manufacturer: row.manufacturer || 'Verified Workshop',
         category: row.category || 'Instruments',
-        inStock: Number(row.stock || row.inStock || 10),
+        inStock: Number(row.in_stock ?? row.stock ?? row.inStock ?? 10),
         popularity: Number(row.popularity || 80),
       }));
 
@@ -661,7 +661,7 @@ CREATE TABLE IF NOT EXISTS orders (
         slug: data.slug || String(data.id),
         manufacturer: data.manufacturer || 'Direct Workshop',
         category: data.category || 'General',
-        inStock: Number(data.stock || 10),
+        inStock: Number(data.in_stock ?? data.stock ?? 10),
         popularity: Number(data.popularity || 85),
         specs: data.specs,
       },
@@ -688,12 +688,13 @@ CREATE TABLE IF NOT EXISTS orders (
       return { product: created };
     }
 
+    const stockQty = Number(product.inStock ?? 1);
     const payload: any = {
       title: product.title,
-      slug: product.slug || product.title?.toLowerCase().replace(/\s+/g, '-') || `prod-${Date.now()}`,
+      slug: product.slug || product.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || `prod-${Date.now()}`,
       description: product.description,
       price: product.price,
-      stock: product.inStock,
+      in_stock: stockQty,
       main_image: product.mainImage,
       manufacturer: product.manufacturer,
       category: product.category,
@@ -705,8 +706,16 @@ CREATE TABLE IF NOT EXISTS orders (
     }
 
     let insertRes = await supabase.from('products').insert([payload]).select().single();
+    if (insertRes.error && insertRes.error.message.includes('in_stock')) {
+      delete payload.in_stock;
+      payload.stock = stockQty;
+      insertRes = await supabase.from('products').insert([payload]).select().single();
+    } else if (insertRes.error && insertRes.error.message.includes('stock')) {
+      delete payload.stock;
+      delete payload.in_stock;
+      insertRes = await supabase.from('products').insert([payload]).select().single();
+    }
     if (insertRes.error && insertRes.error.message.includes('specs')) {
-      // Column specs might not exist in database yet, retry without specs column
       delete payload.specs;
       insertRes = await supabase.from('products').insert([payload]).select().single();
     }
@@ -724,7 +733,7 @@ CREATE TABLE IF NOT EXISTS orders (
         slug: data.slug,
         manufacturer: data.manufacturer,
         category: data.category,
-        inStock: Number(data.stock),
+        inStock: Number(data.in_stock ?? data.stock ?? stockQty),
         popularity: Number(data.popularity),
       },
     };
@@ -746,12 +755,21 @@ CREATE TABLE IF NOT EXISTS orders (
     if (updates.price !== undefined) payload.price = updates.price;
     if (updates.description) payload.description = updates.description;
     if (updates.mainImage) payload.main_image = updates.mainImage;
-    if (updates.inStock !== undefined) payload.stock = updates.inStock;
+    if (updates.inStock !== undefined) payload.in_stock = Number(updates.inStock);
     if (updates.manufacturer) payload.manufacturer = updates.manufacturer;
     if (updates.category) payload.category = updates.category;
     if (updates.specs) payload.specs = updates.specs;
 
     let updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
+    if (updateRes.error && updateRes.error.message.includes('in_stock')) {
+      delete payload.in_stock;
+      if (updates.inStock !== undefined) payload.stock = Number(updates.inStock);
+      updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
+    } else if (updateRes.error && updateRes.error.message.includes('stock')) {
+      delete payload.stock;
+      delete payload.in_stock;
+      updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
+    }
     if (updateRes.error && updateRes.error.message.includes('specs')) {
       delete payload.specs;
       updateRes = await supabase.from('products').update(payload).eq('id', id).select().single();
@@ -770,7 +788,7 @@ CREATE TABLE IF NOT EXISTS orders (
         slug: data.slug,
         manufacturer: data.manufacturer,
         category: data.category,
-        inStock: Number(data.stock),
+        inStock: Number(data.in_stock ?? data.stock ?? 1),
         popularity: Number(data.popularity),
       },
     };

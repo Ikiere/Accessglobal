@@ -135,7 +135,7 @@ const CreateProduct: React.FC = () => {
       });
       navigate("/products");
     } catch (err: any) {
-      setError(err.message || "Failed to create product in Supabase database.");
+      setError(err.message || "Failed to publish product.");
     } finally {
       setSubmitting(false);
     }
@@ -178,7 +178,7 @@ const CreateProduct: React.FC = () => {
                 className="px-5 py-2.5 rounded-xl bg-[#124330] hover:bg-[#1A5B42] text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <HiOutlineSave className="text-base" />
-                <span>{submitting ? "Publishing to Supabase..." : "Publish Product"}</span>
+                <span>{submitting ? "Publishing Product..." : "Publish Product"}</span>
               </button>
             </div>
           </div>

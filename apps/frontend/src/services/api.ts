@@ -126,6 +126,8 @@ function mapApiProductToProduct(item: any): Product {
     cleanDescription = item.description.split(/### Technical Specifications/i)[0].trim();
   }
 
+  const stockCount = item.in_stock !== undefined ? Number(item.in_stock) : (item.stock !== undefined ? Number(item.stock) : 10);
+
   // Fallback default specs if none configured
   if (specs.length === 0) {
     specs = [
@@ -133,7 +135,7 @@ function mapApiProductToProduct(item: any): Product {
       { label: 'Maker', value: makerName },
       { label: 'Rating', value: `${item.rating || 5.0} / 5.0` },
       { label: 'Warranty', value: '3-Year Limited' },
-      { label: 'Stock Level', value: item.stock !== undefined ? `${item.stock} units ready` : 'Available' },
+      { label: 'Stock Level', value: `${stockCount} units ready` },
     ];
   }
 
@@ -148,7 +150,7 @@ function mapApiProductToProduct(item: any): Product {
     image: item.main_image || item.mainImage || item.image_url || 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80',
     description: cleanDescription,
     leadTime: 'Pre-cleared · Ships in 48h',
-    inStock: item.stock === undefined ? true : Number(item.stock) > 0,
+    inStock: stockCount > 0,
     specs,
   };
 }
