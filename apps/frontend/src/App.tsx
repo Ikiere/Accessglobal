@@ -1,138 +1,90 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import './styles/index.css';
 import { catalogProducts, Product } from './data/products';
+import { api } from './services/api';
 import { Navbar } from './components/Navbar';
 import { MobileMenu } from './components/MobileMenu';
-import { Hero } from './components/Hero';
-import { CategorySelector, ViewMode, SortOption } from './components/CategorySelector';
-import { ProductCard } from './components/ProductCard';
-import { ProductSpecTable } from './components/ProductSpecTable';
-import { ProductDetailModal } from './components/ProductDetailModal';
-import { StandardSection } from './components/StandardSection';
-import { MakerFeature } from './components/MakerFeature';
 import { CartDrawer, CartItem } from './components/CartDrawer';
+import { ProductDetailModal } from './components/ProductDetailModal';
 import { OrderReceiptModal, OrderDetails } from './components/OrderReceiptModal';
-import { UserDashboardModal, UserShippingProfile } from './components/UserDashboardModal';
 import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
+import { ViewMode } from './components/CategorySelector';
 
-const initialSeedOrders: OrderDetails[] = [
-  {
-    orderNumber: 'AGM-942104',
-    customerName: 'Henrik Lindqvist',
-    customerEmail: 'henrik@nordicwork.fi',
-    customerAddress: 'Mannerheimintie 14 B, Apt 3',
-    customerCountry: 'Finland',
-    items: [
-      {
-        id: 'agm-01',
-        name: 'Volt X1 Commuter E-Bike',
-        maker: 'Nordic Motion Labs · Helsinki, Finland',
-        price: 1299,
-        quantity: 1,
-      },
-    ],
-    subtotal: 1299,
-    discount: 130,
-    total: 1169,
-    date: 'Oct 28, 2026, 09:30 AM',
-  },
-  {
-    orderNumber: 'AGM-829141',
-    customerName: 'Henrik Lindqvist',
-    customerEmail: 'henrik@nordicwork.fi',
-    customerAddress: 'Mannerheimintie 14 B, Apt 3',
-    customerCountry: 'Finland',
-    items: [
-      {
-        id: 'agm-03',
-        name: 'French Linen Belted Dress',
-        maker: 'Atelier Saint-Florent · Normandy, France',
-        price: 124,
-        quantity: 1,
-      },
-      {
-        id: 'agm-09',
-        name: 'Oud Noir Extrait de Parfum 100ml',
-        maker: 'Maison Al-Dahabi · Grasse, France',
-        price: 110,
-        quantity: 1,
-      },
-    ],
-    subtotal: 234,
-    discount: 0,
-    total: 234,
-    date: 'Nov 02, 2026, 04:15 PM',
-  },
-];
+// Pages
+import { HomePage } from './pages/HomePage';
+import { ShopPage } from './pages/ShopPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { DashboardPage } from './pages/DashboardPage';
 
-const initialShippingProfile: UserShippingProfile = {
-  fullName: 'Henrik Lindqvist',
-  email: 'henrik@nordicwork.fi',
-  street: 'Mannerheimintie 14 B, Apt 3',
-  city: 'Helsinki',
-  country: 'Finland',
-  postalCode: '00100',
-};
+function AppContent() {
+  const navigate = useNavigate();
 
-export function App() {
+  // Products from Supabase (with catalogProducts fallback)
+  const [products, setProducts] = useState<Product[]>(catalogProducts);
+  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
+  const [productError, setProductError] = useState<string | null>(null);
+
   // Cart & Orders State
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderDetails | null>(null);
-  const [orders, setOrders] = useState<OrderDetails[]>(initialSeedOrders);
-  const [shippingProfile, setShippingProfile] = useState<UserShippingProfile>(initialShippingProfile);
-
-  // Authentication State
-  const [currentUser, setCurrentUser] = useState<string | null>('Henrik');
-  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-
-  // Navigation & Drawer State
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Catalog Filtering & View State
-  const [currentCategory, setCurrentCategory] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortOption, setSortOption] = useState<SortOption>('curated');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Toast Feedback State
-  const [toastMessage, setToastMessage] = useState<string>('');
-  const [toastVisible, setToastVisible] = useState<boolean>(false);
-  const toastTimerRef = useRef<number | null>(null);
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setToastVisible(true);
-    if (toastTimerRef.current) {
-      window.clearTimeout(toastTimerRef.current);
+  // Drawers & Notifications
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Layout View Mode (Editorial Grid vs Technical Spec Table)
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  // Fetch live products from Supabase / API Gateway
+  const fetchProducts = async () => {
+    setIsLoadingProducts(true);
+    setProductError(null);
+    try {
+      const liveProducts = await api.getProducts();
+      if (liveProducts && liveProducts.length > 0) {
+        setProducts(liveProducts);
+      }
+    } catch (err: any) {
+      console.warn('[App] Could not fetch products from backend API, using initial catalog:', err);
+      // Keep initial catalogProducts as resilient fallback
+    } finally {
+      setIsLoadingProducts(false);
     }
-    toastTimerRef.current = window.setTimeout(() => {
-      setToastVisible(false);
-    }, 2800);
   };
 
-  // Cart operations
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  useEffect(() => {
+    fetchProducts();
 
-  const handleAddToCart = (product: Product, quantity = 1) => {
+    // Check if user is logged in
+    const user = api.getCurrentUser();
+    if (user && user.name) {
+      setCurrentUser(user.name);
+    }
+  }, []);
+
+  // Cart Actions
+  const handleAddToCart = (product: Product) => {
     setCart((prev) => {
-      const idx = prev.findIndex((item) => item.id === product.id);
-      if (idx > -1) {
-        const next = [...prev];
-        next[idx] = {
-          ...next[idx],
-          quantity: next[idx].quantity + quantity,
-        };
-        return next;
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, { ...product, quantity: 1 }];
     });
-    showToast(`${quantity}× ${product.name} added to order`);
+    setToastMessage(`Added "${product.name}" to your order.`);
   };
 
   const handleUpdateQuantity = (id: string, delta: number) => {
@@ -140,264 +92,129 @@ export function App() {
       prev
         .map((item) => {
           if (item.id === id) {
-            const nextQty = item.quantity + delta;
-            return nextQty > 0 ? { ...item, quantity: nextQty } : null;
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
         })
-        .filter((item): item is CartItem => item !== null)
+        .filter(Boolean) as CartItem[]
     );
   };
 
   const handleRemoveItem = (id: string) => {
-    setCart((prev) => {
-      const found = prev.find((item) => item.id === id);
-      if (found) {
-        showToast(`${found.name} removed from order`);
-      }
-      return prev.filter((item) => item.id !== id);
-    });
+    setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleClearCart = () => {
     setCart([]);
   };
 
-  const handleOpenAuth = (mode: 'login' | 'signup') => {
-    if (currentUser) {
-      showToast(`Logged in as ${currentUser}`);
-      return;
-    }
-    setAuthMode(mode);
-    setAuthModalOpen(true);
+  const handleOrderComplete = (order: OrderDetails) => {
+    setConfirmedOrder(order);
+    try {
+      const existing = JSON.parse(localStorage.getItem('agm_recent_orders') || '[]');
+      localStorage.setItem('agm_recent_orders', JSON.stringify([order, ...existing]));
+    } catch {}
+    setToastMessage(`Order ${order.orderNumber} placed & bonded for customs clearance.`);
   };
 
   const handleAuthSuccess = (name: string, isSignUp: boolean) => {
     setCurrentUser(name);
-    setShippingProfile((prev) => ({ ...prev, fullName: name }));
-    setAuthModalOpen(false);
-    showToast(
+    setToastMessage(
       isSignUp
-        ? `Welcome to AccessGlobal, ${name}. Code GLOBAL10 activated.`
-        : `Welcome back, ${name}`
+        ? `Welcome to AccessGlobal, ${name}! Your account is active.`
+        : `Signed in as ${name}.`
     );
   };
 
   const handleLogout = () => {
+    api.logout();
     setCurrentUser(null);
-    showToast('Signed out of AccessGlobal.');
+    setToastMessage('Signed out of your account.');
   };
 
-  const handleOrderComplete = (order: OrderDetails) => {
-    setOrders((prev) => [order, ...prev]);
-    setConfirmedOrder(order);
-  };
-
-  const handleSelectCategory = (cat: string) => {
-    setCurrentCategory(cat);
-    const catalogEl = document.getElementById('collection');
-    if (catalogEl) {
-      catalogEl.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleOpenSearch = () => {
-    const catalogEl = document.getElementById('collection');
-    if (catalogEl) {
-      catalogEl.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  // Categories with counts
-  const categoryOptions = useMemo(() => {
-    const counts: Record<string, number> = {
-      All: catalogProducts.length,
-    };
-    catalogProducts.forEach((p) => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
-    });
-
-    return [
-      { name: 'All', count: counts['All'] },
-      { name: 'E-Bikes', count: counts['E-Bikes'] || 0 },
-      { name: 'Clothing', count: counts['Clothing'] || 0 },
-      { name: 'Shoes', count: counts['Shoes'] || 0 },
-      { name: 'Appliances', count: counts['Appliances'] || 0 },
-      { name: 'Perfumes', count: counts['Perfumes'] || 0 },
-      { name: 'Accessories', count: counts['Accessories'] || 0 },
-    ];
-  }, []);
-
-  // Filter & Sort Products
-  const filteredProducts = useMemo(() => {
-    let result = catalogProducts.filter((p) => {
-      const matchesCategory = currentCategory === 'All' || p.category === currentCategory;
-      const q = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.maker.toLowerCase().includes(q) ||
-        p.makerOrigin.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.specs.some((s) => s.value.toLowerCase().includes(q));
-
-      return matchesCategory && matchesSearch;
-    });
-
-    if (sortOption === 'price-asc') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortOption === 'price-desc') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortOption === 'name-asc') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return result;
-  }, [currentCategory, searchQuery, sortOption]);
-
-  const flagshipProduct = catalogProducts[0];
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const flagshipProduct = products[0] || catalogProducts[0];
 
   return (
-    <>
-      {/* Skip to Content Landmark */}
-      <a href="#main-content" className="sr-only">
-        Skip to main content
-      </a>
-
-      {/* Persistent Navigation */}
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
+      {/* Header Bar */}
       <Navbar
-        cartCount={cartCount}
+        onToggleMobileMenu={() => setMobileMenuOpen(true)}
+        onOpenSearch={() => navigate('/shop')}
         currentUser={currentUser}
-        onOpenAuth={handleOpenAuth}
-        onOpenDashboard={() => setIsDashboardOpen(true)}
-        onCartClick={() => setIsCartOpen(true)}
-        onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
-        onSelectCategory={handleSelectCategory}
-        onOpenSearch={handleOpenSearch}
       />
 
-      {/* Mobile Drawer */}
+      {/* Main Multi-Page Route Outlet */}
+      <main style={{ flex: 1, width: '100%' }}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                products={products}
+                flagshipProduct={flagshipProduct}
+                onSelectProduct={(p) => setSelectedProduct(p)}
+                onAddToCart={handleAddToCart}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
+            }
+          />
+          <Route
+            path="/shop"
+            element={
+              <ShopPage
+                products={products}
+                isLoading={isLoadingProducts}
+                error={productError}
+                onRefresh={fetchProducts}
+                onSelectProduct={(p) => setSelectedProduct(p)}
+                onAddToCart={handleAddToCart}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
+            }
+          />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <DashboardPage
+                currentUser={currentUser}
+                onOpenAuth={(mode) => {
+                  setAuthMode(mode);
+                  setAuthModalOpen(true);
+                }}
+                onLogout={handleLogout}
+                onShowReceipt={(order) => setConfirmedOrder(order)}
+                onShowToast={(msg) => setToastMessage(msg)}
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+
+      {/* Footer */}
+      <Footer onShowToast={(msg) => setToastMessage(msg)} />
+
+      {/* Slide-Over Mobile Menu (Holds Order Button & Sign In) */}
       <MobileMenu
         isOpen={mobileMenuOpen}
         currentUser={currentUser}
         onClose={() => setMobileMenuOpen(false)}
-        onOpenAuth={handleOpenAuth}
-        onOpenDashboard={() => setIsDashboardOpen(true)}
-        cartCount={cartCount}
+        onOpenAuth={(mode) => {
+          setAuthMode(mode);
+          setAuthModalOpen(true);
+        }}
+        onLogout={handleLogout}
+        cartCount={totalCartCount}
         onOpenCart={() => setIsCartOpen(true)}
-        onSelectCategory={handleSelectCategory}
       />
 
-      {/* Main Landmark */}
-      <main id="main-content">
-        {/* Editorial Hero */}
-        <Hero
-          flagshipProduct={flagshipProduct}
-          onExplore={() => {
-            const el = document.getElementById('collection');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onAddToCart={(p) => handleAddToCart(p, 1)}
-        />
-
-        {/* Collection Section */}
-        <section id="collection" style={{ paddingBlock: 'var(--space-12) var(--space-16)', backgroundColor: 'var(--color-bg)' }}>
-          <div className="wrap">
-            <div style={{ marginBottom: 'var(--space-6)' }}>
-              <span style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600 }}>
-                Aisle Directory
-              </span>
-              <h2 style={{ fontSize: 'var(--text-h2)', marginTop: '2px', color: 'var(--color-ink)' }}>
-                The Collection
-              </h2>
-            </div>
-
-            {/* Category Controls & Layout Switcher */}
-            <CategorySelector
-              categories={categoryOptions}
-              currentCategory={currentCategory}
-              onSelectCategory={setCurrentCategory}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              sortOption={sortOption}
-              onSortChange={setSortOption}
-              totalFilteredCount={filteredProducts.length}
-            />
-
-            {/* Catalog Layouts */}
-            {filteredProducts.length === 0 ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  paddingBlock: 'var(--space-16)',
-                  backgroundColor: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-3)',
-                  border: '1px solid var(--color-line)',
-                }}
-              >
-                <p style={{ fontSize: 'var(--text-body)', color: 'var(--color-ink-muted)', marginBottom: 'var(--space-4)' }}>
-                  No workshop items matched your search query "{searchQuery}".
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setCurrentCategory('All');
-                  }}
-                  className="btn-outline"
-                >
-                  Clear Filters & Show All
-                </button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              /* Editorial Grid Template */
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                  gap: 'var(--space-6)',
-                }}
-              >
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onSelect={(p) => setSelectedProduct(p)}
-                    onAddToCart={(p) => handleAddToCart(p, 1)}
-                  />
-                ))}
-              </div>
-            ) : (
-              /* Technical Spec Table Template */
-              <ProductSpecTable
-                products={filteredProducts}
-                onSelect={(p) => setSelectedProduct(p)}
-                onAddToCart={(p) => handleAddToCart(p, 1)}
-              />
-            )}
-          </div>
-        </section>
-
-        {/* Maker Feature: Helsinki Nordic Motion Labs */}
-        <MakerFeature onFilterMaker={handleSelectCategory} />
-
-        {/* The AGM Standard & Integrity Guarantee */}
-        <StandardSection />
-      </main>
-
-      {/* Global Footer */}
-      <Footer onShowToast={showToast} onSelectCategory={handleSelectCategory} />
-
-      {/* Product Detail Modal / Spec Sheet */}
-      <ProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={(p, qty) => handleAddToCart(p, qty)}
-      />
-
-      {/* Slide-over Cart & Checkout Drawer */}
+      {/* Shopping Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -406,29 +223,27 @@ export function App() {
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
         onOrderComplete={handleOrderComplete}
-        onShowToast={showToast}
+        onShowToast={(msg) => setToastMessage(msg)}
       />
 
-      {/* Customer User Dashboard Modal */}
-      <UserDashboardModal
-        isOpen={isDashboardOpen}
-        currentUser={currentUser}
-        orders={orders}
-        shippingProfile={shippingProfile}
-        onUpdateShippingProfile={(prof) => setShippingProfile(prof)}
-        onViewInvoice={(ord) => setConfirmedOrder(ord)}
-        onClose={() => setIsDashboardOpen(false)}
-        onLogout={handleLogout}
-        onShowToast={showToast}
-      />
+      {/* Product Deep Spec Sheet Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={(p) => handleAddToCart(p)}
+        />
+      )}
 
-      {/* Printable Order Confirmation Receipt Modal */}
-      <OrderReceiptModal
-        order={confirmedOrder}
-        onClose={() => setConfirmedOrder(null)}
-      />
+      {/* Printable Bonded Invoice Modal */}
+      {confirmedOrder && (
+        <OrderReceiptModal
+          order={confirmedOrder}
+          onClose={() => setConfirmedOrder(null)}
+        />
+      )}
 
-      {/* Authentication Modal */}
+      {/* Supabase Authentication Modal */}
       <AuthModal
         isOpen={authModalOpen}
         initialMode={authMode}
@@ -436,9 +251,17 @@ export function App() {
         onSuccess={handleAuthSuccess}
       />
 
-      {/* Toast Announcements */}
-      <Toast message={toastMessage} isVisible={toastVisible} />
-    </>
+      {/* Status Toasts */}
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+    </div>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

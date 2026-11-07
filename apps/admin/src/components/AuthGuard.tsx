@@ -38,8 +38,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     return (
       <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center text-white px-4">
         <div className="relative flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-          <div className="absolute p-3 rounded-full bg-indigo-500/10 text-indigo-400">
+          <div className="w-16 h-16 rounded-full border-2 border-emerald-500/20 border-t-[#124330] animate-spin" />
+          <div className="absolute p-3 rounded-full bg-[#124330]/20 text-emerald-400">
             <FaShieldAlt className="text-xl animate-pulse" />
           </div>
         </div>
@@ -47,7 +47,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
           AccessGlobal Enterprise Guard
         </h3>
         <p className="mt-1 text-xs font-mono text-gray-500">
-          Verifying security certificates & installation status...
+          Verifying security certificates & session credentials...
         </p>
       </div>
     );
@@ -65,7 +65,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         </div>
         <button
           onClick={checkAccess}
-          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-colors"
+          className="px-4 py-2 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white text-xs font-semibold flex items-center gap-2 transition-colors border border-[#124330]"
         >
           <HiOutlineArrowPath />
           <span>Retry Connection</span>
@@ -74,12 +74,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     );
   }
 
-  // 1. If system requires first-time setup or Supabase is disconnected, strictly redirect to setup wizard
-  if (!setupStatus || setupStatus.requiresSetup || !setupStatus.supabaseConfigured) {
-    return <Navigate to="/setup" replace />;
-  }
-
-  // 2. If unauthenticated, redirect to login
+  // If unauthenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

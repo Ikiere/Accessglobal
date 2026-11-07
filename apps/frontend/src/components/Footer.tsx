@@ -1,25 +1,29 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { IconCheck, IconArrowRight } from './icons';
 
 interface FooterProps {
-  onShowToast: (message: string) => void;
-  onSelectCategory: (category: string) => void;
+  onShowToast?: (message: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory }) => {
+export const Footer: React.FC<FooterProps> = ({ onShowToast }) => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [currency, setCurrency] = useState('USD');
+
+  const notify = (msg: string) => {
+    if (onShowToast) onShowToast(msg);
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (newsletterEmail.trim() && newsletterEmail.includes('@')) {
       setSubscribed(true);
-      onShowToast('Subscribed to Workshop Dispatch. Code GLOBAL10 emailed.');
+      notify('Subscribed to Workshop Dispatch. Code GLOBAL10 emailed.');
       setNewsletterEmail('');
       setTimeout(() => setSubscribed(false), 3500);
     } else {
-      onShowToast('Please provide a valid email address.');
+      notify('Please provide a valid email address.');
     }
   };
 
@@ -78,33 +82,33 @@ export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory })
             {/* Aisles */}
             <div>
               <span style={{ fontSize: 'var(--text-caption)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, display: 'block', marginBottom: 'var(--space-3)' }}>
-                Aisles
+                Pages
               </span>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
                 <li>
-                  <button onClick={() => onSelectCategory('E-Bikes')} className="btn-subtle" style={{ padding: 0 }}>
-                    E-Bikes & Mobility
-                  </button>
+                  <Link to="/" className="btn-subtle" style={{ padding: 0 }}>
+                    Home
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => onSelectCategory('Clothing')} className="btn-subtle" style={{ padding: 0 }}>
-                    Crafted Apparel
-                  </button>
+                  <Link to="/shop" className="btn-subtle" style={{ padding: 0 }}>
+                    Shop All Products
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => onSelectCategory('Shoes')} className="btn-subtle" style={{ padding: 0 }}>
-                    Bench-Made Footwear
-                  </button>
+                  <Link to="/about" className="btn-subtle" style={{ padding: 0 }}>
+                    About Our Workshops
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => onSelectCategory('Appliances')} className="btn-subtle" style={{ padding: 0 }}>
-                    Living & Kitchen
-                  </button>
+                  <Link to="/contact" className="btn-subtle" style={{ padding: 0 }}>
+                    Contact Support
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => onSelectCategory('Perfumes')} className="btn-subtle" style={{ padding: 0 }}>
-                    Artisanal Scents
-                  </button>
+                  <Link to="/dashboard" className="btn-subtle" style={{ padding: 0 }}>
+                    My Consignments & Orders
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -115,11 +119,11 @@ export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory })
                 Integrity
               </span>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
-                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>The AGM Standard</a></li>
-                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Customs Clearance</a></li>
-                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Workshop Vetting</a></li>
-                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>30-Day Inspection</a></li>
-                <li><a href="#standard" className="btn-subtle" style={{ padding: 0 }}>Carbon Offset</a></li>
+                <li><Link to="/about" className="btn-subtle" style={{ padding: 0 }}>The AGM Standard</Link></li>
+                <li><Link to="/about" className="btn-subtle" style={{ padding: 0 }}>Customs Clearance</Link></li>
+                <li><Link to="/about" className="btn-subtle" style={{ padding: 0 }}>Workshop Vetting</Link></li>
+                <li><Link to="/about" className="btn-subtle" style={{ padding: 0 }}>30-Day Inspection</Link></li>
+                <li><Link to="/about" className="btn-subtle" style={{ padding: 0 }}>Carbon Offset</Link></li>
               </ul>
             </div>
 
@@ -129,10 +133,10 @@ export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory })
                 Compliance
               </span>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
-                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Privacy policy: Data minimization enforced')}>Privacy Policy</button></li>
-                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Terms of service: Transparent bonded purchase')}>Terms of Trade</button></li>
-                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('DSAR portal: Export or erase records anytime')}>DSAR & Data Rights</button></li>
-                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => onShowToast('Cookie status: Zero tracking cookies in use')}>Cookie Preferences</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => notify('Privacy policy: Data minimization enforced')}>Privacy Policy</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => notify('Terms of service: Transparent bonded purchase')}>Terms of Trade</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => notify('DSAR portal: Export or erase records anytime')}>DSAR & Data Rights</button></li>
+                <li><button type="button" className="btn-subtle" style={{ padding: 0 }} onClick={() => notify('Cookie status: Zero tracking cookies in use')}>Cookie Preferences</button></li>
               </ul>
             </div>
           </div>
@@ -152,7 +156,7 @@ export const Footer: React.FC<FooterProps> = ({ onShowToast, onSelectCategory })
                 value={currency}
                 onChange={(e) => {
                   setCurrency(e.target.value);
-                  onShowToast(`Display currency updated to ${e.target.value}`);
+                  notify(`Display currency updated to ${e.target.value}`);
                 }}
                 style={{
                   padding: '3px 8px',

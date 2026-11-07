@@ -119,3 +119,24 @@ DO $$ BEGIN
         CREATE POLICY "Service Role All Access Reviews" ON public.reviews FOR ALL USING (auth.role() = 'service_role');
     END IF;
 END $$;
+
+-- 9. Initial Seed Data (Verified Maker Workshops)
+INSERT INTO public.categories (name, slug, parent_category) VALUES
+    ('E-Bikes', 'e-bikes', '/'),
+    ('Clothing', 'clothing', '/'),
+    ('Shoes', 'shoes', '/'),
+    ('Appliances', 'appliances', '/'),
+    ('Perfumes', 'perfumes', '/'),
+    ('Accessories', 'accessories', '/')
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO public.products (title, price, rating, description, main_image, slug, manufacturer, category, in_stock, popularity) VALUES
+    ('Volt X1 Commuter E-Bike', 1299.00, 4.95, 'Aircraft-grade 6061-T6 aluminum hydroformed frame paired with a whisper-quiet 250W rear hub motor and integrated torque sensor for responsive urban transit.', 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=900&auto=format&fit=crop&q=80', 'volt-x1-commuter-e-bike', 'Nordic Motion Labs (Helsinki)', 'E-Bikes', 14, 98),
+    ('Trail Pro All-Terrain E-Bike', 2199.00, 4.90, 'Full-suspension gravel and trail machine engineered with a 650Wh high-capacity battery pack, 85Nm mid-drive torque, and hydraulic four-piston disc brakes.', 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=900&auto=format&fit=crop&q=80', 'trail-pro-all-terrain-e-bike', 'Kallio Alpine Works (Innsbruck)', 'E-Bikes', 8, 94),
+    ('French Linen Belted Dress', 124.00, 4.88, 'Woven from 100% Normandy flax linen. Features deep side pockets, a removable self-tie sash, and reinforced French seams designed for timeless hot-weather layering.', 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=900&auto=format&fit=crop&q=80', 'french-linen-belted-dress', 'Atelier Saint-Florent (Normandy)', 'Clothing', 32, 91),
+    ('Selvedge Denim Chore Coat', 189.00, 4.92, '13.5 oz Japanese raw selvedge denim milled in Kojima. Constructed with triple-needle felled seams, custom copper hardware, and dual interior passport storage.', 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80', 'selvedge-denim-chore-coat', 'Kojima Craft Guild (Okayama)', 'Clothing', 19, 89),
+    ('Horween Derby Oxford Shoes', 285.00, 4.96, 'Hand-lasted Goodyear welt construction utilizing Horween Chromexcel pull-up leather. Features stacked leather heels and Vibram half-lug rubber outsoles.', 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=900&auto=format&fit=crop&q=80', 'horween-derby-oxford-shoes', 'Calzaturificio Varese (Tuscany)', 'Shoes', 12, 97),
+    ('Precision Burr Coffee Grinder', 245.00, 4.94, 'Solid billet CNC-milled 304 stainless steel body with 48mm heptagonal high-nitrogen martensitic steel burrs. Micrometric stepless adjustment mechanism.', 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=900&auto=format&fit=crop&q=80', 'precision-burr-coffee-grinder', 'Mahlwerk Precision (Stuttgart)', 'Appliances', 26, 95),
+    ('Botanical Eau de Parfum', 140.00, 4.89, 'Hand-blended micro-batch extract featuring Italian bergamot, Grasse vetiver, and wild Atlantic cedarwood aged in French glass demijohns for 90 days.', 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=900&auto=format&fit=crop&q=80', 'botanical-eau-de-parfum', 'Maison Grasse (Provence)', 'Perfumes', 45, 92),
+    ('Full-Grain Bridle Leather Briefcase', 340.00, 4.97, 'English vegetable-tanned bridle leather with hand-burnished edges, solid brass hardware, and dedicated padded compartment for 16-inch workstation devices.', 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80', 'full-grain-bridle-leather-briefcase', 'Walsall Leather Guild (UK)', 'Accessories', 11, 96)
+ON CONFLICT (slug) DO NOTHING;

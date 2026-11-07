@@ -1,11 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface ToastProps {
   message: string;
-  isVisible: boolean;
+  isVisible?: boolean;
+  onClose?: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({ message, isVisible }) => {
+export const Toast: React.FC<ToastProps> = ({ message, isVisible = true, onClose }) => {
+  useEffect(() => {
+    if (message && onClose) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [message, onClose]);
+
   if (!message) return null;
 
   return (

@@ -17,7 +17,7 @@ export class RepositoryService {
   private getSupabaseClient() {
     const supabase = SupabaseService.getInstance().getClient();
     if (!supabase) {
-      throw new Error('Supabase database is not connected. Supabase is the sole source of truth. Please configure it in /setup.');
+      throw new Error('Supabase database is not connected. Please configure SUPABASE_URL and SUPABASE_ANON_KEY in your backend environment or via the Admin Console Database Settings (/supabase-settings).');
     }
     return supabase;
   }

@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import {
   Categories,
   CreateCategory,
@@ -24,14 +24,13 @@ import {
   Reviews,
   Users,
   SupabaseSettings,
-  OnboardingWizard,
 } from "./pages";
 import { AuthGuard } from "./components";
 
 const router = createBrowserRouter([
   {
     path: "/setup",
-    element: <OnboardingWizard />,
+    element: <Navigate to="/supabase-settings" replace />,
   },
   {
     path: "/login",

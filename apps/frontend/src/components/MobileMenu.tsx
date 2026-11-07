@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
-import { IconClose, IconCart, IconShieldCheck } from './icons';
+import { useNavigate } from 'react-router-dom';
+import { IconClose, IconCart, IconUser } from './icons';
 
 interface MobileMenuProps {
   isOpen: boolean;
   currentUser: string | null;
   onClose: () => void;
   onOpenAuth: (mode: 'login' | 'signup') => void;
-  onOpenDashboard: () => void;
+  onLogout: () => void;
   cartCount: number;
   onOpenCart: () => void;
-  onSelectCategory: (category: string) => void;
 }
 
 export const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -17,11 +17,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   currentUser,
   onClose,
   onOpenAuth,
-  onOpenDashboard,
+  onLogout,
   cartCount,
   onOpenCart,
-  onSelectCategory,
 }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -35,8 +36,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
   if (!isOpen) return null;
 
-  const handleCategoryClick = (category: string) => {
-    onSelectCategory(category);
+  const handleNav = (path: string) => {
+    navigate(path);
     onClose();
   };
 
@@ -64,6 +65,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           display: 'flex',
           flexDirection: 'column',
           boxShadow: 'var(--shadow-overlay)',
+          overflowY: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -71,44 +73,40 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
           <div>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600 }}>AccessGlobal</span>
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)' }}>Curated Workshop Index</p>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)' }}>Direct From Verified Workshops</p>
           </div>
           <button onClick={onClose} aria-label="Close menu" className="btn-subtle" style={{ padding: '8px' }}>
             <IconClose size={20} />
           </button>
         </div>
 
-        {/* Aisles List */}
+        {/* Primary Pages Navigation */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
           <span style={{ fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, paddingBottom: '4px' }}>
-            Aisles
+            Pages
           </span>
-          <button onClick={() => handleCategoryClick('All')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            All Aisles
+          <button onClick={() => handleNav('/')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
+            Home
           </button>
-          <button onClick={() => handleCategoryClick('E-Bikes')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            E-Bikes & Mobility
+          <button onClick={() => handleNav('/shop')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)', fontWeight: 600, color: 'var(--color-accent)' }}>
+            Shop All Products
           </button>
-          <button onClick={() => handleCategoryClick('Clothing')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            Crafted Apparel
+          <button onClick={() => handleNav('/about')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
+            About Our Workshops
           </button>
-          <button onClick={() => handleCategoryClick('Shoes')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            Bench-Made Footwear
+          <button onClick={() => handleNav('/contact')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
+            Contact Us
           </button>
-          <button onClick={() => handleCategoryClick('Appliances')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            Living & Appliances
-          </button>
-          <button onClick={() => handleCategoryClick('Perfumes')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-            Artisanal Fragrances
-          </button>
-          <a href="#standard" onClick={onClose} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)', color: 'var(--color-accent)' }}>
-            <IconShieldCheck size={18} />
-            The AGM Standard
-          </a>
+          {currentUser && (
+            <button onClick={() => handleNav('/dashboard')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
+              My Orders & Dashboard
+            </button>
+          )}
         </nav>
 
-        {/* Footer Actions */}
+        {/* Footer Actions: Order Button & Account Controls */}
         <div style={{ marginTop: 'auto', borderTop: '1px solid var(--color-line)', paddingTop: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          {/* Order / Cart Trigger */}
           <button
             onClick={() => {
               onClose();
@@ -120,25 +118,33 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <IconCart size={18} /> View Order
             </span>
-            <span className="tabular-nums chip-accent" style={{ color: '#fff', backgroundColor: 'rgba(255,255,255,0.2)' }}>
+            <span className="tabular-nums" style={{ color: '#fff', backgroundColor: 'rgba(255,255,255,0.22)', padding: '2px 8px', borderRadius: 'var(--radius-round)', fontSize: '0.75rem', fontWeight: 600 }}>
               {cartCount} items
             </span>
           </button>
 
+          {/* User Sign In / Register / Profile */}
           {currentUser ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <div style={{ padding: '6px 8px', fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)' }}>
-                Logged in as <strong style={{ color: 'var(--color-ink)' }}>{currentUser}</strong>
+              <div style={{ padding: '6px 8px', fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IconUser size={14} /> Signed in as <strong style={{ color: 'var(--color-ink)' }}>{currentUser}</strong>
               </div>
               <button
-                onClick={() => {
-                  onClose();
-                  onOpenDashboard();
-                }}
+                onClick={() => handleNav('/dashboard')}
                 className="btn-outline"
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                Customer Dashboard & Orders
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  onLogout();
+                  onClose();
+                }}
+                className="btn-subtle"
+                style={{ width: '100%', justifyContent: 'center', color: 'var(--color-ink-muted)', fontSize: 'var(--text-caption)' }}
+              >
+                Sign Out
               </button>
             </div>
           ) : (
