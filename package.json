@@ -2,16 +2,13 @@
   "name": "accessglobal",
   "version": "1.0.0",
   "private": true,
-  "description": "AccessGlobal platform monorepo - Frontend portal and Admin dashboard",
+  "description": "AccessGlobal platform - Direct Supabase Architecture (Frontend portal and Admin dashboard)",
   "workspaces": [
-    "apps/*",
-    "backend"
+    "apps/*"
   ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:admin": "npm run dev --workspace=apps/admin",
-    "build:backend": "npm run build --workspace=backend",
     "build:frontend": "npm run build --workspace=apps/frontend",
     "build:admin": "npm run build --workspace=apps/admin",
     "build": "npm run build --workspaces --if-present",
@@ -26,7 +23,8 @@
     "vite",
     "vercel",
     "admin-dashboard",
-    "frontend"
+    "frontend",
+    "supabase"
   ],
   "author": "Zerocoded",
   "license": "MIT",

@@ -15,18 +15,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'otp'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otpInput, setOtpInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     setMode(initialMode);
     setErrorMessage(null);
+    setSuccessNotice(null);
   }, [initialMode, isOpen]);
+
+  useEffect(() => {
+    let timer: any;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,8 +48,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setName('');
       setEmail('');
       setPassword('');
+      setOtpInput('');
       setShowPassword(false);
       setErrorMessage(null);
+      setSuccessNotice(null);
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,27 +70,69 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setSuccessNotice(null);
+
+    if (mode === 'otp') {
+      if (!otpInput.trim() || otpInput.trim().length < 6) {
+        setErrorMessage('Please enter the 6-digit confirmation code from your email.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await api.verifyOtp(email.trim(), otpInput.trim());
+        onSuccess(res.user?.name || name || 'Customer', true);
+        onClose();
+      } catch (err: any) {
+        setErrorMessage(err.message || 'Invalid or expired confirmation code.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Please enter both your email address and password.');
       return;
     }
 
-    setErrorMessage(null);
     setLoading(true);
 
     try {
       if (mode === 'signup') {
         const displayName = name.trim() || email.split('@')[0];
         const res = await api.register(displayName, email.trim(), password);
-        onSuccess(res.user?.name || displayName, true);
+        if (res.requiresOtp) {
+          setMode('otp');
+          setResendCooldown(30);
+          setSuccessNotice(`A 6-digit verification code has been dispatched to ${email.trim()}.`);
+        } else {
+          onSuccess(res.user?.name || displayName, true);
+          onClose();
+        }
       } else {
         const res = await api.login(email.trim(), password);
         onSuccess(res.user?.name || email.split('@')[0], false);
+        onClose();
       }
-      onClose();
     } catch (err: any) {
-      // If backend is not reached yet or throws error, provide actionable message
       setErrorMessage(err.message || 'Authentication failed. Please verify credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      await api.resendOtp(email.trim(), name.trim());
+      setResendCooldown(45);
+      setSuccessNotice('A new 6-digit verification code was dispatched to your email.');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to resend code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -139,12 +195,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <IconUser size={22} />
           </div>
           <h2 id="auth-modal-title" style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-ink)' }}>
-            {mode === 'login' ? 'Sign in to AccessGlobal' : 'Create your buyer account'}
+            {mode === 'otp'
+              ? 'Verify Your Email'
+              : mode === 'login'
+              ? 'Sign in to AccessGlobal'
+              : 'Create your buyer account'}
           </h2>
           <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', marginTop: '4px' }}>
-            {mode === 'login'
-              ? 'Access saved workshop orders and tracking'
-              : 'Save customs profiles and receive bonded consignment tracking'}
+            {mode === 'otp'
+              ? `Enter the 6-digit security code dispatched to ${email}`
+              : mode === 'login'
+              ? 'Direct Supabase cloud authentication for orders and tracking'
+              : 'Direct-from-workshop ordering and pre-cleared customs clearance'}
           </p>
         </div>
 
@@ -165,88 +227,167 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
+        {/* Success Notice Banner */}
+        {successNotice && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'rgba(18, 67, 48, 0.1)',
+              border: '1px solid rgba(18, 67, 48, 0.25)',
+              borderRadius: 'var(--radius-2)',
+              color: '#124330',
+              fontSize: 'var(--text-body-sm)',
+              marginBottom: 'var(--space-4)',
+            }}
+          >
+            {successNotice}
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          {mode === 'signup' && (
+          {mode === 'otp' ? (
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
-                Full Name
+              <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '8px', textAlign: 'center' }}>
+                6-Digit Security Code
               </label>
               <input
                 type="text"
                 required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Henrik Lindqvist"
+                maxLength={6}
+                autoFocus
+                value={otpInput}
+                onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
                 style={{
                   width: '100%',
-                  padding: '10px 14px',
+                  padding: '14px',
                   borderRadius: 'var(--radius-2)',
-                  border: '1px solid var(--color-line-strong)',
-                  backgroundColor: 'var(--color-surface)',
+                  border: '2px solid var(--color-accent)',
+                  backgroundColor: 'var(--color-surface-sunken)',
                   color: 'var(--color-ink)',
-                  fontSize: 'var(--text-body-sm)',
+                  fontSize: '1.75rem',
+                  fontWeight: 700,
+                  letterSpacing: '8px',
+                  textAlign: 'center',
+                  fontFamily: 'monospace, "IBM Plex Mono"',
                   outline: 'none',
                 }}
               />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setErrorMessage(null);
+                  }}
+                  className="btn-subtle"
+                  style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}
+                >
+                  ← Edit email
+                </button>
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || loading}
+                  onClick={handleResendOtp}
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: resendCooldown > 0 ? 'var(--color-ink-subtle)' : 'var(--color-accent)',
+                    fontWeight: 600,
+                    cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                  }}
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
+                </button>
+              </div>
             </div>
+          ) : (
+            <>
+              {mode === 'signup' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Henrik Lindqvist"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-2)',
+                      border: '1px solid var(--color-line-strong)',
+                      backgroundColor: 'var(--color-surface)',
+                      color: 'var(--color-ink)',
+                      fontSize: 'var(--text-body-sm)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@domain.com"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-2)',
+                    border: '1px solid var(--color-line-strong)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-ink)',
+                    fontSize: 'var(--text-body-sm)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="btn-subtle"
+                    style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)' }}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-2)',
+                    border: '1px solid var(--color-line-strong)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-ink)',
+                    fontSize: 'var(--text-body-sm)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </>
           )}
-
-          <div>
-            <label style={{ display: 'block', fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@domain.com"
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-2)',
-                border: '1px solid var(--color-line-strong)',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-ink)',
-                fontSize: 'var(--text-body-sm)',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="btn-subtle"
-                style={{ fontSize: 'var(--text-caption)', color: 'var(--color-ink-muted)' }}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-2)',
-                border: '1px solid var(--color-line-strong)',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-ink)',
-                fontSize: 'var(--text-body-sm)',
-                outline: 'none',
-              }}
-            />
-          </div>
 
           <button
             type="submit"
@@ -260,47 +401,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? 'Authenticating with Supabase...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+            {loading
+              ? 'Verifying...'
+              : mode === 'otp'
+              ? 'Verify & Complete Registration'
+              : mode === 'login'
+              ? 'Sign In'
+              : 'Create Account & Send Code'}
           </button>
         </form>
 
         {/* Switch Mode Footer */}
-        <div style={{ marginTop: 'var(--space-6)', textAlign: 'center', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
-          {mode === 'login' ? (
-            <span>
-              Don't have an account?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signup');
-                  setErrorMessage(null);
-                }}
-                style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
-              >
-                Create one
-              </button>
-            </span>
-          ) : (
-            <span>
-              Already registered?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('login');
-                  setErrorMessage(null);
-                }}
-                style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
-              >
-                Sign in
-              </button>
-            </span>
-          )}
-        </div>
+        {mode !== 'otp' && (
+          <div style={{ marginTop: 'var(--space-6)', textAlign: 'center', fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)' }}>
+            {mode === 'login' ? (
+              <span>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setErrorMessage(null);
+                  }}
+                  style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Create one
+                </button>
+              </span>
+            ) : (
+              <span>
+                Already registered?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setErrorMessage(null);
+                  }}
+                  style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Sign in
+                </button>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Security Reassurance */}
         <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', fontSize: '0.6875rem', color: 'var(--color-ink-subtle)' }}>
           <IconShieldCheck size={14} />
-          <span>Encrypted with AES-256 · Direct Supabase Security Engine</span>
+          <span>Direct Supabase BaaS · Resend Authenticated OTP</span>
         </div>
       </div>
     </div>

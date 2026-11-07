@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { api, SetupStatus } from "../services/api";
+import { api } from "../services/api";
 import { FaShieldAlt } from "react-icons/fa";
-import { HiOutlineArrowPath } from "react-icons/hi2";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,27 +10,11 @@ interface AuthGuardProps {
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const location = useLocation();
   const [loading, setLoading] = useState<boolean>(true);
-  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [backendError, setBackendError] = useState<boolean>(false);
-
-  const checkAccess = async () => {
-    setLoading(true);
-    setBackendError(false);
-    try {
-      const status = await api.getSetupStatus();
-      setSetupStatus(status);
-      setIsAuthenticated(api.isAuthenticated());
-    } catch (err) {
-      console.warn("[AuthGuard] Setup status check failed:", err);
-      setBackendError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    checkAccess();
+    setIsAuthenticated(api.isAuthenticated());
+    setLoading(false);
   }, [location.pathname]);
 
   if (loading) {
@@ -49,27 +32,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         <p className="mt-1 text-xs font-mono text-gray-500">
           Verifying security certificates & session credentials...
         </p>
-      </div>
-    );
-  }
-
-  // If backend service is down or unreachable
-  if (backendError) {
-    return (
-      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center text-white px-4 text-center">
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 mb-4 max-w-md">
-          <h3 className="text-sm font-semibold mb-1">Backend Connection Unavailable</h3>
-          <p className="text-xs text-rose-300">
-            Could not reach the AccessGlobal API gateway. Please ensure the backend server is running on port 5000.
-          </p>
-        </div>
-        <button
-          onClick={checkAccess}
-          className="px-4 py-2 rounded-xl bg-[#124330] hover:bg-[#1a5b42] text-white text-xs font-semibold flex items-center gap-2 transition-colors border border-[#124330]"
-        >
-          <HiOutlineArrowPath />
-          <span>Retry Connection</span>
-        </button>
       </div>
     );
   }

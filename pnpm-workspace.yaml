@@ -1,7 +1,5 @@
 packages:
   - 'apps/*'
-  - 'backend'
 
 allowBuilds:
   esbuild: true
-
