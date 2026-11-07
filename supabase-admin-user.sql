@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS public.users (
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT,
-    role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
+    role TEXT DEFAULT 'user',
     avatar TEXT,
-    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'pending')),
+    status TEXT DEFAULT 'active',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -75,8 +75,8 @@ CREATE TRIGGER on_auth_user_created
 DO $$
 DECLARE
     admin_id UUID := gen_random_uuid();
-    admin_email TEXT := 'admin@accessglobal.com';
-    admin_password TEXT := 'Admin@AccessGlobal2026!';
+    admin_email TEXT := 'esoweibi@gmail.com';
+    admin_password TEXT := 'Fathergod@123';
 BEGIN
     -- Check if user already exists in auth.users
     IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = admin_email) THEN
