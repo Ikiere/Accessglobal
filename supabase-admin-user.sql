@@ -68,10 +68,10 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 4. Create or Update Administrator Account
+-- 4. Create or Update Administrator Account & Repair GoTrue Schema Token Scanning
 -- Credentials:
---   Email:    admin@accessglobal.com
---   Password: Admin@AccessGlobal2026!
+--   Email:    esoweibi@gmail.com
+--   Password: Fathergod@123
 DO $$
 DECLARE
     admin_id UUID := gen_random_uuid();
@@ -92,7 +92,17 @@ BEGIN
             updated_at,
             role,
             aud,
-            confirmation_token
+            confirmation_token,
+            recovery_token,
+            email_change,
+            email_change_token_new,
+            email_change_token_current,
+            reauthentication_token,
+            phone,
+            phone_change,
+            phone_change_token,
+            is_super_admin,
+            is_sso_user
         ) VALUES (
             admin_id,
             '00000000-0000-0000-0000-000000000000',
@@ -105,7 +115,17 @@ BEGIN
             NOW(),
             'authenticated',
             'authenticated',
-            encode(gen_random_bytes(32), 'hex')
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            false,
+            false
         );
 
         -- Also ensure record exists in public.users
@@ -126,11 +146,26 @@ BEGIN
 
         RAISE NOTICE 'Administrator account % created successfully!', admin_email;
     ELSE
-        -- Update existing user password and role to admin
+        -- Update existing user password, role to admin, and repair NULL token strings that crash GoTrue scanner
         UPDATE auth.users SET
             encrypted_password = crypt(admin_password, gen_salt('bf', 10)),
             email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
-            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', '"admin"')
+            raw_app_meta_data = '{"provider":"email","providers":["email"]}'::jsonb,
+            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', '"admin"'),
+            aud = 'authenticated',
+            role = 'authenticated',
+            confirmation_token = COALESCE(confirmation_token, ''),
+            recovery_token = COALESCE(recovery_token, ''),
+            email_change = COALESCE(email_change, ''),
+            email_change_token_new = COALESCE(email_change_token_new, ''),
+            email_change_token_current = COALESCE(email_change_token_current, ''),
+            reauthentication_token = COALESCE(reauthentication_token, ''),
+            phone = COALESCE(phone, ''),
+            phone_change = COALESCE(phone_change, ''),
+            phone_change_token = COALESCE(phone_change_token, ''),
+            is_super_admin = COALESCE(is_super_admin, false),
+            is_sso_user = COALESCE(is_sso_user, false),
+            updated_at = NOW()
         WHERE email = admin_email;
 
         UPDATE public.users SET
@@ -139,6 +174,21 @@ BEGIN
             updated_at = NOW()
         WHERE email = admin_email;
 
-        RAISE NOTICE 'Administrator account % updated with admin role and active password.', admin_email;
+        RAISE NOTICE 'Administrator account % updated with admin role, active password, and repaired GoTrue tokens.', admin_email;
     END IF;
+
+    -- Global repair across any other accounts with NULL tokens causing "Database error querying schema"
+    UPDATE auth.users SET
+        confirmation_token = COALESCE(confirmation_token, ''),
+        recovery_token = COALESCE(recovery_token, ''),
+        email_change = COALESCE(email_change, ''),
+        email_change_token_new = COALESCE(email_change_token_new, ''),
+        email_change_token_current = COALESCE(email_change_token_current, ''),
+        reauthentication_token = COALESCE(reauthentication_token, ''),
+        phone = COALESCE(phone, ''),
+        phone_change = COALESCE(phone_change, ''),
+        phone_change_token = COALESCE(phone_change_token, '')
+    WHERE confirmation_token IS NULL 
+       OR recovery_token IS NULL 
+       OR email_change IS NULL;
 END $$;

@@ -195,7 +195,18 @@ BEGIN
         SET encrypted_password = crypt(p_password, gen_salt('bf', 10)),
             email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
             updated_at = NOW(),
-            raw_user_meta_data = jsonb_build_object('name', p_name, 'role', 'user')
+            raw_user_meta_data = jsonb_build_object('name', p_name, 'role', 'user'),
+            confirmation_token = COALESCE(confirmation_token, ''),
+            recovery_token = COALESCE(recovery_token, ''),
+            email_change = COALESCE(email_change, ''),
+            email_change_token_new = COALESCE(email_change_token_new, ''),
+            email_change_token_current = COALESCE(email_change_token_current, ''),
+            reauthentication_token = COALESCE(reauthentication_token, ''),
+            phone = COALESCE(phone, ''),
+            phone_change = COALESCE(phone_change, ''),
+            phone_change_token = COALESCE(phone_change_token, ''),
+            aud = 'authenticated',
+            role = 'authenticated'
         WHERE email = clean_email
         RETURNING id INTO new_user_id;
     ELSE
@@ -211,7 +222,17 @@ BEGIN
             updated_at,
             role,
             aud,
-            confirmation_token
+            confirmation_token,
+            recovery_token,
+            email_change,
+            email_change_token_new,
+            email_change_token_current,
+            reauthentication_token,
+            phone,
+            phone_change,
+            phone_change_token,
+            is_super_admin,
+            is_sso_user
         ) VALUES (
             new_user_id,
             '00000000-0000-0000-0000-000000000000',
@@ -224,7 +245,17 @@ BEGIN
             NOW(),
             'authenticated',
             'authenticated',
-            encode(gen_random_bytes(32), 'hex')
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            false,
+            false
         );
     END IF;
 
@@ -329,7 +360,17 @@ BEGIN
             updated_at,
             role,
             aud,
-            confirmation_token
+            confirmation_token,
+            recovery_token,
+            email_change,
+            email_change_token_new,
+            email_change_token_current,
+            reauthentication_token,
+            phone,
+            phone_change,
+            phone_change_token,
+            is_super_admin,
+            is_sso_user
         ) VALUES (
             admin_id,
             '00000000-0000-0000-0000-000000000000',
@@ -342,7 +383,17 @@ BEGIN
             NOW(),
             'authenticated',
             'authenticated',
-            encode(gen_random_bytes(32), 'hex')
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            false,
+            false
         );
 
         INSERT INTO public.users (id, name, email, role, status, created_at, updated_at)
@@ -362,10 +413,26 @@ BEGIN
 
         RAISE NOTICE 'Administrator account % created successfully!', admin_email;
     ELSE
+        -- Update password and repair NULL token strings that crash GoTrue scanner ("Database error querying schema")
         UPDATE auth.users SET
             encrypted_password = crypt(admin_password, gen_salt('bf', 10)),
             email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
-            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', '"admin"')
+            raw_app_meta_data = '{"provider":"email","providers":["email"]}'::jsonb,
+            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', '"admin"'),
+            aud = 'authenticated',
+            role = 'authenticated',
+            confirmation_token = COALESCE(confirmation_token, ''),
+            recovery_token = COALESCE(recovery_token, ''),
+            email_change = COALESCE(email_change, ''),
+            email_change_token_new = COALESCE(email_change_token_new, ''),
+            email_change_token_current = COALESCE(email_change_token_current, ''),
+            reauthentication_token = COALESCE(reauthentication_token, ''),
+            phone = COALESCE(phone, ''),
+            phone_change = COALESCE(phone_change, ''),
+            phone_change_token = COALESCE(phone_change_token, ''),
+            is_super_admin = COALESCE(is_super_admin, false),
+            is_sso_user = COALESCE(is_sso_user, false),
+            updated_at = NOW()
         WHERE email = admin_email;
 
         UPDATE public.users SET
@@ -374,6 +441,21 @@ BEGIN
             updated_at = NOW()
         WHERE email = admin_email;
 
-        RAISE NOTICE 'Administrator account % updated with admin role and active password.', admin_email;
+        RAISE NOTICE 'Administrator account % updated with admin role, active password, and repaired GoTrue tokens.', admin_email;
     END IF;
+
+    -- Global repair across any other accounts with NULL tokens
+    UPDATE auth.users SET
+        confirmation_token = COALESCE(confirmation_token, ''),
+        recovery_token = COALESCE(recovery_token, ''),
+        email_change = COALESCE(email_change, ''),
+        email_change_token_new = COALESCE(email_change_token_new, ''),
+        email_change_token_current = COALESCE(email_change_token_current, ''),
+        reauthentication_token = COALESCE(reauthentication_token, ''),
+        phone = COALESCE(phone, ''),
+        phone_change = COALESCE(phone_change, ''),
+        phone_change_token = COALESCE(phone_change_token, '')
+    WHERE confirmation_token IS NULL 
+       OR recovery_token IS NULL 
+       OR email_change IS NULL;
 END $$;
