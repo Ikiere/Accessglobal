@@ -12,6 +12,7 @@ import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
 import { ViewMode } from './components/CategorySelector';
+import { SitePreloader } from './components/SitePreloader';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -253,6 +254,9 @@ function AppContent() {
 
       {/* Status Toasts */}
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+
+      {/* Global Animated Site Preloader */}
+      <SitePreloader isLoaded={!isLoadingProducts} minDuration={750} />
     </div>
   );
 }

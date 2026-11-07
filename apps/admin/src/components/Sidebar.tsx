@@ -12,11 +12,11 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiOutlineBell,
 } from "react-icons/hi2";
-import { HiOutlineDatabase } from "react-icons/hi";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setSidebar } from "../features/dashboard/dashboardSlice";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { BrandLogo } from "./BrandLogo";
 
 const Sidebar: React.FC = () => {
   const { isSidebarOpen } = useAppSelector((state) => state.dashboard);
@@ -47,19 +47,7 @@ const Sidebar: React.FC = () => {
         {/* Top header & branding */}
         <div className="overflow-y-auto overflow-x-hidden flex-1 py-4">
           <div className="flex items-center justify-between px-5 mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-md bg-[#124330] flex items-center justify-center text-[#fbfaf8] border border-[#124330]/20 font-bold text-sm tracking-tight">
-                AG
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
-                  AccessGlobal
-                </span>
-                <span className="text-[10px] uppercase font-semibold text-[#124330] dark:text-[#52b788] tracking-wider">
-                  Admin Console
-                </span>
-              </div>
-            </div>
+            <BrandLogo size={32} subtitle="Admin Console" />
             <button
               onClick={() => dispatch(setSidebar())}
               aria-label="Close sidebar"
@@ -79,16 +67,6 @@ const Sidebar: React.FC = () => {
               <NavLink to="/" end className={({ isActive }) => navItemClass(isActive)}>
                 <HiOutlineHome className="text-lg" />
                 <span>Dashboard</span>
-              </NavLink>
-
-              <NavLink to="/supabase-settings" className={({ isActive }) => navItemClass(isActive)}>
-                <HiOutlineDatabase className="text-lg text-emerald-500" />
-                <span className="flex items-center justify-between flex-1">
-                  <span>Supabase DB</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                    Safe
-                  </span>
-                </span>
               </NavLink>
             </div>
 

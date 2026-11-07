@@ -8,14 +8,13 @@ import {
   HiOutlineChevronDown,
   HiOutlineArrowRightOnRectangle,
   HiOutlineUser,
-  HiOutlineCircleStack,
+  HiOutlineArrowTopRightOnSquare,
 } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setSidebar } from "../features/dashboard/dashboardSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { toggleDarkMode } from "../features/darkMode/darkModeSlice";
 import { api, UserItem } from "../services/api";
-import { realtime, RealtimeStatus } from "../services/supabaseRealtime";
 
 const Header: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -24,7 +23,7 @@ const Header: React.FC = () => {
 
   const [currentUser, setCurrentUser] = useState<UserItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>("disconnected");
+  const [storefrontUrl, setStorefrontUrl] = useState("/");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -42,11 +41,15 @@ const Header: React.FC = () => {
         // Cached user used if getMe fails
       });
 
-    // 2. Initialize Realtime service
-    realtime.initialize();
-    const unsub = realtime.onStatusChange((status) => {
-      setRealtimeStatus(status);
-    });
+    // 2. Read customized storefront URL
+    const saved = localStorage.getItem("accessglobal_storefront_url");
+    if (saved && saved.trim()) {
+      setStorefrontUrl(saved.trim());
+    } else if (window.location.port === "3001") {
+      setStorefrontUrl("http://localhost:3000");
+    } else {
+      setStorefrontUrl("/");
+    }
 
     // 3. Click outside handler for user dropdown
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,7 +60,6 @@ const Header: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      unsub();
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
@@ -108,44 +110,19 @@ const Header: React.FC = () => {
           </form>
         </div>
 
-        {/* Right: Supabase Realtime pill, theme, notifications & user profile */}
+        {/* Right: Storefront shortcut, theme, notifications & user profile */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Supabase Realtime live badge */}
-          <Link
-            to="/supabase-settings"
-            className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-              realtimeStatus === "connected"
-                ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                : realtimeStatus === "connecting"
-                ? "bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                : "bg-indigo-500/10 hover:bg-indigo-500/15 border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
-            }`}
+          {/* Direct Link to Storefront */}
+          <a
+            href={storefrontUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Visit Live Storefront (${storefrontUrl})`}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#124330]/10 hover:bg-[#124330]/20 text-[#124330] dark:bg-[#124330]/30 dark:text-[#52b788] border border-[#124330]/20 transition-all"
           >
-            <span className="relative flex h-2 w-2">
-              {realtimeStatus === "connected" && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              )}
-              <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${
-                  realtimeStatus === "connected"
-                    ? "bg-emerald-500"
-                    : realtimeStatus === "connecting"
-                    ? "bg-amber-500"
-                    : "bg-indigo-500"
-                }`}
-              />
-            </span>
-            <span className="flex items-center gap-1 font-mono text-[11px]">
-              <HiOutlineCircleStack className="text-xs" />
-              <span>
-                {realtimeStatus === "connected"
-                  ? "Supabase Realtime: Live"
-                  : realtimeStatus === "connecting"
-                  ? "Supabase: Connecting..."
-                  : "Supabase Cloud: Active"}
-              </span>
-            </span>
-          </Link>
+            <span>Visit Storefront</span>
+            <HiOutlineArrowTopRightOnSquare className="text-xs" />
+          </a>
 
           {/* Dark mode toggle */}
           <button
@@ -206,16 +183,7 @@ const Header: React.FC = () => {
                   className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
                 >
                   <HiOutlineUser className="text-sm text-gray-400" />
-                  <span>Admin Profile</span>
-                </Link>
-
-                <Link
-                  to="/supabase-settings"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
-                >
-                  <HiOutlineCircleStack className="text-sm text-emerald-400" />
-                  <span>Supabase Settings</span>
+                  <span>Admin Profile &amp; Settings</span>
                 </Link>
 
                 <div className="my-1 border-t border-gray-100 dark:border-white/[0.06]" />

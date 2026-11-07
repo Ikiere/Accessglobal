@@ -32,17 +32,27 @@ const RegisterComponent: React.FC = () => {
   };
 
   return (
-    <div className="w-[500px] dark:bg-gray-900 bg-white flex flex-col justify-between items-center py-10 px-8 rounded-xl shadow-xl max-sm:w-[95%]">
+    <div className="w-[500px] bg-white border border-[#E5DAC9] rounded-2xl shadow-[0_20px_40px_-15px_rgba(18,67,48,0.07)] p-8 sm:p-10 max-sm:w-[95%]">
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center gap-6">
-        <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
-          <FaShieldAlt className="text-4xl" />
+        <div className="w-14 h-14 rounded-2xl bg-[#124330] flex items-center justify-center mx-auto mb-1 shadow-sm border border-[#1A5B42]/40">
+          <svg
+            width="36"
+            height="36"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="shrink-0"
+          >
+            <path d="M7 23L16 9L25 23H20L16 16.5L12 23H7Z" fill="#fbfaf8" />
+            <circle cx="16" cy="11" r="1.5" fill="#fbfaf8" />
+          </svg>
         </div>
         <div className="text-center">
-          <h2 className="text-2xl dark:text-whiteSecondary text-blackPrimary font-bold">
+          <h2 className="text-2xl text-[#121516] font-bold tracking-tight">
             Create Admin Account
           </h2>
-          <p className="text-xs dark:text-gray-400 text-gray-500 mt-1">
-            AccessGlobal Unified Infrastructure Console
+          <p className="text-xs text-[#57625B] mt-1.5 leading-relaxed">
+            AccessGlobal Central Command &amp; Operations Portal
           </p>
         </div>
 

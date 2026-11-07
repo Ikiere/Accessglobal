@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { IconMenu, IconSearch } from './icons';
+import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   onToggleMobileMenu: () => void;
@@ -37,15 +38,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
           <Link
             to="/"
-            style={{ textAlign: 'left', display: 'flex', flexDirection: 'column' }}
+            style={{ textDecoration: 'none', color: 'inherit' }}
             aria-label="AccessGlobal Market Home"
           >
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4375rem', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--color-ink)', lineHeight: 1.1 }}>
-              AccessGlobal
-            </span>
-            <span style={{ fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-ink-subtle)', fontWeight: 600, marginTop: '2px' }}>
-              Direct From Workshops
-            </span>
+            <BrandLogo size={34} />
           </Link>
 
           {/* Desktop Navigation Links */}

@@ -23,14 +23,13 @@ import {
   Register,
   Reviews,
   Users,
-  SupabaseSettings,
 } from "./pages";
 import { AuthGuard } from "./components";
 
 const router = createBrowserRouter([
   {
     path: "/setup",
-    element: <Navigate to="/supabase-settings" replace />,
+    element: <Navigate to="/" replace />,
   },
   {
     path: "/login",
@@ -130,7 +129,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/supabase-settings",
-        element: <SupabaseSettings />,
+        element: <Navigate to="/" replace />,
       },
     ],
   },

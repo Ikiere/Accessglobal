@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { IconCheck, IconArrowRight } from './icons';
+import { BrandLogo } from './BrandLogo';
 
 interface FooterProps {
   onShowToast?: (message: string) => void;
@@ -34,9 +35,9 @@ export const Footer: React.FC<FooterProps> = ({ onShowToast }) => {
           
           {/* Brand & Newsletter Column */}
           <div style={{ maxWidth: '420px' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.625rem', fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 'var(--space-2)' }}>
-              AccessGlobal
-            </span>
+            <div style={{ marginBottom: 'var(--space-3)' }}>
+              <BrandLogo size={32} showSubtitle={false} />
+            </div>
             <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-ink-muted)', lineHeight: '1.6', marginBottom: 'var(--space-6)' }}>
               Connecting independent workshops in 28 countries directly with global buyers. Pre-bonded customs clearance, ethical manufacturing disclosures, and localized door-to-door transit.
             </p>
