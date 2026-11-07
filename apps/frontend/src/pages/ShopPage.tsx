@@ -33,21 +33,30 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const [sortOption, setSortOption] = useState<SortOption>('curated');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Compute categories with counts
+  // Compute categories with counts dynamically from live products
   const categoriesWithCounts = useMemo(() => {
     const counts: Record<string, number> = { All: products.length };
     products.forEach((p) => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
+      if (p.category) {
+        counts[p.category] = (counts[p.category] || 0) + 1;
+      }
     });
+
+    // Base collection categories in order
+    const baseCategories = ['E-Bikes', 'Clothing', 'Shoes', 'Appliances', 'Perfumes', 'Accessories'];
+
+    // Combine base categories with any new dynamic categories created in the admin console
+    const existingCats = products.map((p) => p.category).filter(Boolean);
+    const allUniqueCategories = Array.from(new Set([...baseCategories, ...existingCats]));
 
     return [
       { name: 'All', count: counts['All'] || 0 },
-      { name: 'E-Bikes', count: counts['E-Bikes'] || 0 },
-      { name: 'Clothing', count: counts['Clothing'] || 0 },
-      { name: 'Shoes', count: counts['Shoes'] || 0 },
-      { name: 'Appliances', count: counts['Appliances'] || 0 },
-      { name: 'Perfumes', count: counts['Perfumes'] || 0 },
-      { name: 'Accessories', count: counts['Accessories'] || 0 },
+      ...allUniqueCategories
+        .filter((cat) => (counts[cat] || 0) > 0 || baseCategories.includes(cat))
+        .map((cat) => ({
+          name: cat,
+          count: counts[cat] || 0,
+        })),
     ];
   }, [products]);
 

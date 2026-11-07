@@ -260,10 +260,29 @@ export const api = {
     const displayName = name.trim() || cleanEmail.split('@')[0];
     const supabase = getSupabase();
 
-    // 1. Generate 6-digit OTP
+    // 1. Check if an account already exists with this email address
+    if (supabase) {
+      try {
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id, email, name')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (existingUser) {
+          throw new Error(
+            `An account with email "${cleanEmail}" is already registered. Please switch to Sign In to log in with your password.`
+          );
+        }
+      } catch (checkErr: any) {
+        if (checkErr.message?.includes('already registered')) throw checkErr;
+      }
+    }
+
+    // 2. Generate 6-digit OTP
     const otpCode = generateOtpCode();
 
-    // 2. Initiate signup in Supabase Auth if connected
+    // 3. Initiate signup in Supabase Auth if connected
     let userId = `usr-${Date.now()}`;
     let token = `pending-${Date.now()}`;
 
@@ -280,8 +299,11 @@ export const api = {
       });
 
       if (error) {
-        if (error.message.toLowerCase().includes('already registered')) {
-          throw new Error('An account with this email already exists. Please sign in instead.');
+        const msg = error.message.toLowerCase();
+        if (msg.includes('already') || msg.includes('database error finding user') || msg.includes('exists')) {
+          throw new Error(
+            `An account with email "${cleanEmail}" is already registered. Please switch to Sign In to log in with your password.`
+          );
         }
         throw new Error(error.message || 'Registration failed. Please check your details.');
       }
@@ -320,7 +342,7 @@ export const api = {
     // Save pending OTP with resolved userId
     savePendingOtp(cleanEmail, displayName, otpCode, userId);
 
-    // 3. Dispatch OTP via Resend email template
+    // 4. Dispatch OTP via Resend email template
     const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
 
     const user: AuthUser = {

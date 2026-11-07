@@ -37,15 +37,14 @@ export interface EmailSendResult {
 class EmailService {
   private getApiKey(): string {
     return (
-      (import.meta as any).env?.VITE_RESEND_API_KEY ||
-      localStorage.getItem('accessglobal_resend_api_key') ||
-      ''
+      import.meta.env.VITE_RESEND_API_KEY ||
+      (typeof window !== 'undefined' ? localStorage.getItem('accessglobal_resend_api_key') || '' : '')
     );
   }
 
   private getFromEmail(): string {
     return (
-      (import.meta as any).env?.VITE_RESEND_FROM_EMAIL ||
+      import.meta.env.VITE_RESEND_FROM_EMAIL ||
       'AccessGlobal <onboarding@resend.dev>'
     );
   }
@@ -60,6 +59,13 @@ class EmailService {
   ): Promise<EmailSendResult> {
     const apiKey = this.getApiKey();
     const fromEmail = this.getFromEmail();
+
+    const isDefaultDevSandbox = fromEmail.includes('resend.dev');
+    const isOwnerEmail = email.toLowerCase() === 'esoweibi@gmail.com';
+    const targetRecipient = (isDefaultDevSandbox && !isOwnerEmail) ? 'esoweibi@gmail.com' : email;
+    const emailSubject = (isDefaultDevSandbox && !isOwnerEmail)
+      ? `[AccessGlobal Security OTP for ${email}]: ${otpCode}`
+      : `Your AccessGlobal Verification Code: ${otpCode}`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -97,7 +103,7 @@ class EmailService {
                 Confirm Your Account Registration
               </h1>
               <p style="font-size: 15px; line-height: 24px; color: #475569; margin: 0 0 24px 0;">
-                Hello <strong>${name || 'Maker'}</strong>, thank you for joining AccessGlobal. To verify your email address and activate your account for direct-from-workshop ordering, please enter this 6-digit confirmation code:
+                Hello <strong>${name || 'Maker'}</strong>, thank you for joining AccessGlobal. To verify your email address (<code>${email}</code>) and activate your account for direct-from-workshop ordering, please enter this 6-digit confirmation code:
               </p>
 
               <!-- OTP Code Display Card -->
@@ -152,10 +158,7 @@ class EmailService {
     }
 
     try {
-      let endpoint = '/api/resend/emails';
-      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-        endpoint = 'https://api.resend.com/emails';
-      }
+      const endpoint = '/api/resend/emails';
 
       let response: Response;
       try {
@@ -167,13 +170,13 @@ class EmailService {
           },
           body: JSON.stringify({
             from: fromEmail,
-            to: [email],
-            subject: `Your AccessGlobal Verification Code: ${otpCode}`,
+            to: [targetRecipient],
+            subject: emailSubject,
             html: htmlContent,
           }),
         });
       } catch {
-        // Fallback to direct Resend endpoint
+        // Direct fallback if proxy is bypassed
         response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -182,8 +185,8 @@ class EmailService {
           },
           body: JSON.stringify({
             from: fromEmail,
-            to: [email],
-            subject: `Your AccessGlobal Verification Code: ${otpCode}`,
+            to: [targetRecipient],
+            subject: emailSubject,
             html: htmlContent,
           }),
         });
@@ -208,7 +211,11 @@ class EmailService {
       }
 
       const resData = await response.json().catch(() => ({}));
-      return { success: true, emailId: resData.id };
+      return {
+        success: true,
+        emailId: resData.id,
+        sandboxCode: !isOwnerEmail ? otpCode : undefined,
+      };
     } catch (err: any) {
       console.warn('[EmailService] Failed to send OTP via Resend:', err.message);
       return {
@@ -390,20 +397,45 @@ class EmailService {
       return { success: true, simulated: true };
     }
 
+    const isDefaultDevSandbox = fromEmail.includes('resend.dev');
+    const isOwnerEmail = order.customerEmail.toLowerCase() === 'esoweibi@gmail.com';
+    const targetRecipient = (isDefaultDevSandbox && !isOwnerEmail) ? 'esoweibi@gmail.com' : order.customerEmail;
+    const emailSubject = (isDefaultDevSandbox && !isOwnerEmail)
+      ? `[AccessGlobal Order #${order.orderId} for ${order.customerEmail}]: Total $${order.total}`
+      : `Order Confirmed: #${order.orderId} - AccessGlobal Network`;
+
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [order.customerEmail],
-          subject: `Order Confirmed: #${order.orderId} - AccessGlobal Network`,
-          html: htmlContent,
-        }),
-      });
+      const endpoint = '/api/resend/emails';
+      let response: Response;
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [targetRecipient],
+            subject: emailSubject,
+            html: htmlContent,
+          }),
+        });
+      } catch {
+        response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [targetRecipient],
+            subject: emailSubject,
+            html: htmlContent,
+          }),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

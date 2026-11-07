@@ -69,11 +69,24 @@ function AppContent() {
   useEffect(() => {
     fetchProducts();
 
+    // Auto-refresh catalog when tab becomes visible or focused so admin product uploads immediately reflect on frontend
+    const handleSync = () => {
+      fetchProducts();
+    };
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') handleSync();
+    });
+    window.addEventListener('focus', handleSync);
+
     // Check if user is logged in
     const user = api.getCurrentUser();
     if (user && user.name) {
       setCurrentUser(user.name);
     }
+
+    return () => {
+      window.removeEventListener('focus', handleSync);
+    };
   }, []);
 
   // Cart Actions

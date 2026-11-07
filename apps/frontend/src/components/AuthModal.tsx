@@ -240,9 +240,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               color: '#dc2626',
               fontSize: 'var(--text-body-sm)',
               marginBottom: 'var(--space-4)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
             }}
           >
-            {errorMessage}
+            <span>{errorMessage}</span>
+            {(errorMessage.toLowerCase().includes('already') || errorMessage.toLowerCase().includes('registered')) && mode === 'signup' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setMode('login');
+                }}
+                style={{
+                  alignSelf: 'flex-start',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#124330',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                }}
+              >
+                Switch to Sign In →
+              </button>
+            )}
           </div>
         )}
 

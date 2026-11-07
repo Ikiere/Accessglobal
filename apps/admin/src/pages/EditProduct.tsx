@@ -330,6 +330,12 @@ const EditProduct: React.FC = () => {
                       }}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#FBF8F3] dark:bg-white/[0.03] border border-[#E5DAC9] dark:border-white/[0.08] text-xs font-semibold text-[#121516] dark:text-white focus:outline-none focus:border-[#124330]"
                     >
+                      <option value="E-Bikes">E-Bikes</option>
+                      <option value="Clothing">Clothing</option>
+                      <option value="Shoes">Shoes</option>
+                      <option value="Appliances">Appliances</option>
+                      <option value="Perfumes">Perfumes</option>
+                      <option value="Accessories">Accessories</option>
                       <option value="E-Bikes & Clean Transit">E-Bikes &amp; Clean Transit</option>
                       <option value="Bikes & Scooters">Bikes &amp; Scooters</option>
                       <option value="Smartphones & Mobile">Smartphones &amp; Mobile</option>
@@ -339,7 +345,6 @@ const EditProduct: React.FC = () => {
                       <option value="Cameras & Optics">Cameras &amp; Optics</option>
                       <option value="Measuring Instruments">Measuring Instruments</option>
                       <option value="Joinery & Workshop Tools">Joinery &amp; Workshop Tools</option>
-                      <option value="Accessories">Accessories</option>
                     </select>
                   </div>
 
