@@ -333,7 +333,7 @@ export const api = {
   logout(): void {
     const supabase = getSupabase();
     if (supabase) {
-      supabase.auth.signOut().catch(() => {});
+      supabase.auth.signOut().catch(() => { });
     }
     localStorage.removeItem('agm_token');
     localStorage.removeItem('agm_user');
