@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   });
 
   return (
-    <header className="site-header hairline-bottom" style={{ backgroundColor: 'var(--color-surface)', position: 'sticky', top: 0, zIndex: 40, width: '100%' }}>
+    <header className="site-header" style={{ position: 'sticky', top: 0, zIndex: 100, width: '100%', backgroundColor: 'var(--color-surface)' }}>
       <div className="wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
         
         {/* Brand / Logo */}

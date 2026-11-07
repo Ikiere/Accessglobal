@@ -80,7 +80,7 @@ const Header: React.FC = () => {
   const userAvatar = currentUser?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userName)}`;
 
   return (
-    <header className="sticky top-0 z-20 bg-white dark:bg-[#0a0e17] border-b border-gray-200/80 dark:border-white/[0.06] transition-colors">
+    <header className="sticky top-0 z-40 bg-white dark:bg-[#0a0e17] border-b border-gray-200/80 dark:border-white/[0.06] transition-colors">
       <div className="flex items-center justify-between px-6 py-3.5 gap-4">
         {/* Left: Mobile hamburger & command search */}
         <div className="flex items-center gap-3 flex-1 max-w-xl">

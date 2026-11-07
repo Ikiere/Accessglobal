@@ -137,7 +137,7 @@ function AppContent() {
   const flagshipProduct = products[0] || catalogProducts[0];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* Header Bar */}
       <Navbar
         onToggleMobileMenu={() => setMobileMenuOpen(true)}
@@ -146,7 +146,7 @@ function AppContent() {
       />
 
       {/* Main Multi-Page Route Outlet */}
-      <main style={{ flex: 1, width: '100%' }}>
+      <main style={{ flex: 1, width: '100%', overflowX: 'clip' }}>
         <Routes>
           <Route
             path="/"
