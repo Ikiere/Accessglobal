@@ -184,81 +184,11 @@ CREATE OR REPLACE FUNCTION public.create_confirmed_user(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, extensions
 AS $$
 DECLARE
     new_user_id UUID := gen_random_uuid();
     clean_email TEXT := lower(trim(p_email));
 BEGIN
-    IF EXISTS (SELECT 1 FROM auth.users WHERE email = clean_email) THEN
-        UPDATE auth.users
-        SET encrypted_password = crypt(p_password, gen_salt('bf', 10)),
-            email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
-            updated_at = NOW(),
-            raw_user_meta_data = jsonb_build_object('name', p_name, 'role', 'user'),
-            confirmation_token = COALESCE(confirmation_token, ''),
-            recovery_token = COALESCE(recovery_token, ''),
-            email_change = COALESCE(email_change, ''),
-            email_change_token_new = COALESCE(email_change_token_new, ''),
-            email_change_token_current = COALESCE(email_change_token_current, ''),
-            reauthentication_token = COALESCE(reauthentication_token, ''),
-            phone = COALESCE(phone, ''),
-            phone_change = COALESCE(phone_change, ''),
-            phone_change_token = COALESCE(phone_change_token, ''),
-            aud = 'authenticated',
-            role = 'authenticated'
-        WHERE email = clean_email
-        RETURNING id INTO new_user_id;
-    ELSE
-        INSERT INTO auth.users (
-            id,
-            instance_id,
-            email,
-            encrypted_password,
-            email_confirmed_at,
-            raw_app_meta_data,
-            raw_user_meta_data,
-            created_at,
-            updated_at,
-            role,
-            aud,
-            confirmation_token,
-            recovery_token,
-            email_change,
-            email_change_token_new,
-            email_change_token_current,
-            reauthentication_token,
-            phone,
-            phone_change,
-            phone_change_token,
-            is_super_admin,
-            is_sso_user
-        ) VALUES (
-            new_user_id,
-            '00000000-0000-0000-0000-000000000000',
-            clean_email,
-            crypt(p_password, gen_salt('bf', 10)),
-            NOW(),
-            '{"provider":"email","providers":["email"]}'::jsonb,
-            jsonb_build_object('name', p_name, 'role', 'user'),
-            NOW(),
-            NOW(),
-            'authenticated',
-            'authenticated',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            false,
-            false
-        );
-    END IF;
-
     INSERT INTO public.users (
         id,
         name,
@@ -269,7 +199,7 @@ BEGIN
         updated_at
     ) VALUES (
         new_user_id,
-        p_name,
+        COALESCE(p_name, split_part(clean_email, '@', 1)),
         clean_email,
         'user',
         'active',
@@ -278,7 +208,8 @@ BEGIN
     ) ON CONFLICT (email) DO UPDATE SET
         name = EXCLUDED.name,
         status = 'active',
-        updated_at = NOW();
+        updated_at = NOW()
+    RETURNING id INTO new_user_id;
 
     RETURN new_user_id;
 END;
@@ -337,15 +268,15 @@ INSERT INTO public.products (title, price, rating, description, main_image, slug
 VALUES ('CycloneVac Pro Brushless Vacuum', 289.00, 4.88, 'High-speed 125,000 RPM digital brushless motor providing 180 Air Watts of continuous fade-free suction with a sealed 5-stage HEPA 13 filtration system.', 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=900&auto=format&fit=crop&q=80', 'cyclonevac-pro-brushless-vacuum', 'AeroCraft Precision (Daejeon)', 'Appliances', 15, 90)
 ON CONFLICT (slug) DO NOTHING;
 
--- 13. Create or Update Administrator Account
+-- 13. Create or Update Administrator Account & Repair GoTrue Token Scanning
 -- Credentials:
---   Email:    admin@accessglobal.com
---   Password: Admin@AccessGlobal2026!
+--   Email:    esoweibi@gmail.com
+--   Password: Fathergod@123
 DO $$
 DECLARE
     admin_id UUID := gen_random_uuid();
-    admin_email TEXT := 'admin@accessglobal.com';
-    admin_password TEXT := 'Admin@AccessGlobal2026!';
+    admin_email TEXT := 'esoweibi@gmail.com';
+    admin_password TEXT := 'Fathergod@123';
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = admin_email) THEN
         INSERT INTO auth.users (
@@ -366,9 +297,6 @@ BEGIN
             email_change_token_new,
             email_change_token_current,
             reauthentication_token,
-            phone,
-            phone_change,
-            phone_change_token,
             is_super_admin,
             is_sso_user
         ) VALUES (
@@ -383,9 +311,6 @@ BEGIN
             NOW(),
             'authenticated',
             'authenticated',
-            '',
-            '',
-            '',
             '',
             '',
             '',
@@ -427,9 +352,6 @@ BEGIN
             email_change_token_new = COALESCE(email_change_token_new, ''),
             email_change_token_current = COALESCE(email_change_token_current, ''),
             reauthentication_token = COALESCE(reauthentication_token, ''),
-            phone = COALESCE(phone, ''),
-            phone_change = COALESCE(phone_change, ''),
-            phone_change_token = COALESCE(phone_change_token, ''),
             is_super_admin = COALESCE(is_super_admin, false),
             is_sso_user = COALESCE(is_sso_user, false),
             updated_at = NOW()
@@ -444,17 +366,14 @@ BEGIN
         RAISE NOTICE 'Administrator account % updated with admin role, active password, and repaired GoTrue tokens.', admin_email;
     END IF;
 
-    -- Global repair across any other accounts with NULL tokens
+    -- Global repair across any other accounts with NULL tokens (Excluding phone to preserve uniqueness)
     UPDATE auth.users SET
         confirmation_token = COALESCE(confirmation_token, ''),
         recovery_token = COALESCE(recovery_token, ''),
         email_change = COALESCE(email_change, ''),
         email_change_token_new = COALESCE(email_change_token_new, ''),
         email_change_token_current = COALESCE(email_change_token_current, ''),
-        reauthentication_token = COALESCE(reauthentication_token, ''),
-        phone = COALESCE(phone, ''),
-        phone_change = COALESCE(phone_change, ''),
-        phone_change_token = COALESCE(phone_change_token, '')
+        reauthentication_token = COALESCE(reauthentication_token, '')
     WHERE confirmation_token IS NULL 
        OR recovery_token IS NULL 
        OR email_change IS NULL;

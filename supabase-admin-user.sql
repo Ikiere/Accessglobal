@@ -98,9 +98,6 @@ BEGIN
             email_change_token_new,
             email_change_token_current,
             reauthentication_token,
-            phone,
-            phone_change,
-            phone_change_token,
             is_super_admin,
             is_sso_user
         ) VALUES (
@@ -115,9 +112,6 @@ BEGIN
             NOW(),
             'authenticated',
             'authenticated',
-            '',
-            '',
-            '',
             '',
             '',
             '',
@@ -160,9 +154,6 @@ BEGIN
             email_change_token_new = COALESCE(email_change_token_new, ''),
             email_change_token_current = COALESCE(email_change_token_current, ''),
             reauthentication_token = COALESCE(reauthentication_token, ''),
-            phone = COALESCE(phone, ''),
-            phone_change = COALESCE(phone_change, ''),
-            phone_change_token = COALESCE(phone_change_token, ''),
             is_super_admin = COALESCE(is_super_admin, false),
             is_sso_user = COALESCE(is_sso_user, false),
             updated_at = NOW()
@@ -177,17 +168,14 @@ BEGIN
         RAISE NOTICE 'Administrator account % updated with admin role, active password, and repaired GoTrue tokens.', admin_email;
     END IF;
 
-    -- Global repair across any other accounts with NULL tokens causing "Database error querying schema"
+    -- Global repair across any other accounts with NULL tokens causing "Database error querying schema" (Preserve phone uniqueness)
     UPDATE auth.users SET
         confirmation_token = COALESCE(confirmation_token, ''),
         recovery_token = COALESCE(recovery_token, ''),
         email_change = COALESCE(email_change, ''),
         email_change_token_new = COALESCE(email_change_token_new, ''),
         email_change_token_current = COALESCE(email_change_token_current, ''),
-        reauthentication_token = COALESCE(reauthentication_token, ''),
-        phone = COALESCE(phone, ''),
-        phone_change = COALESCE(phone_change, ''),
-        phone_change_token = COALESCE(phone_change_token, '')
+        reauthentication_token = COALESCE(reauthentication_token, '')
     WHERE confirmation_token IS NULL 
        OR recovery_token IS NULL 
        OR email_change IS NULL;
