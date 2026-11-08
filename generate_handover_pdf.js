@@ -576,3 +576,4 @@ writeStream.on('finish', () => {
   const stats = fs.statSync(outputPath);
   console.log('File size:', (stats.size / 1024).toFixed(1), 'KB');
 });
+

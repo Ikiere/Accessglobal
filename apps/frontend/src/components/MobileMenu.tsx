@@ -97,11 +97,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           <button onClick={() => handleNav('/contact')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
             Contact Us
           </button>
-          {currentUser && (
-            <button onClick={() => handleNav('/dashboard')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
-              My Orders & Dashboard
-            </button>
-          )}
+          <button onClick={() => handleNav('/dashboard')} className="btn-subtle" style={{ justifyContent: 'flex-start', padding: '10px 12px', fontSize: 'var(--text-body)' }}>
+            Orders & Consignment Tracking
+          </button>
         </nav>
 
         {/* Footer Actions: Order Button & Account Controls */}

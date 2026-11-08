@@ -45,7 +45,7 @@ class EmailService {
   private getFromEmail(): string {
     return (
       import.meta.env.VITE_RESEND_FROM_EMAIL ||
-      'AccessGlobal <onboarding@resend.dev>'
+      'AccessGlobal <security@accessglobalmarket.com>'
     );
   }
 
@@ -59,13 +59,8 @@ class EmailService {
   ): Promise<EmailSendResult> {
     const apiKey = this.getApiKey();
     const fromEmail = this.getFromEmail();
-
-    const isDefaultDevSandbox = fromEmail.includes('resend.dev');
-    const isOwnerEmail = email.toLowerCase() === 'esoweibi@gmail.com';
-    const targetRecipient = (isDefaultDevSandbox && !isOwnerEmail) ? 'esoweibi@gmail.com' : email;
-    const emailSubject = (isDefaultDevSandbox && !isOwnerEmail)
-      ? `[AccessGlobal Security OTP for ${email}]: ${otpCode}`
-      : `Your AccessGlobal Verification Code: ${otpCode}`;
+    const cleanEmail = email.trim().toLowerCase();
+    const emailSubject = `Your AccessGlobal Verification Code: ${otpCode}`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -166,10 +161,12 @@ class EmailService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-Resend-Key': apiKey,
           },
           body: JSON.stringify({
             from: fromEmail,
-            to: [targetRecipient],
+            to: [cleanEmail],
             subject: emailSubject,
             html: htmlContent,
           }),
@@ -185,10 +182,12 @@ class EmailService {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+              'X-Resend-Key': apiKey,
             },
             body: JSON.stringify({
               from: fromEmail,
-              to: [targetRecipient],
+              to: [cleanEmail],
               subject: emailSubject,
               html: htmlContent,
             }),
@@ -212,7 +211,7 @@ class EmailService {
             },
             body: JSON.stringify({
               from: fromEmail,
-              to: [targetRecipient],
+              to: [cleanEmail],
               subject: emailSubject,
               html: htmlContent,
             }),
@@ -228,16 +227,9 @@ class EmailService {
         const rawMessage = errorData.error || errorData.message || (response ? `Resend error status ${response.status}` : 'Email dispatch failed');
         console.warn('[EmailService] Resend API responded with error:', rawMessage);
 
-        const isSandbox =
-          rawMessage.toLowerCase().includes('only send testing emails') ||
-          rawMessage.toLowerCase().includes('resend.com/domains') ||
-          (response && response.status === 403);
-
         return {
           success: false,
-          isSandboxRestriction: isSandbox,
           error: rawMessage,
-          sandboxCode: otpCode,
         };
       }
 
@@ -246,15 +238,12 @@ class EmailService {
       return {
         success: true,
         emailId: resData.id,
-        sandboxCode: !isOwnerEmail ? otpCode : undefined,
       };
     } catch (err: any) {
       console.warn('[EmailService] Failed to send OTP via Resend:', err.message);
       return {
         success: false,
-        isSandboxRestriction: true,
         error: err.message,
-        sandboxCode: otpCode,
       };
     }
   }
@@ -429,12 +418,8 @@ class EmailService {
       return { success: true, simulated: true };
     }
 
-    const isDefaultDevSandbox = fromEmail.includes('resend.dev');
-    const isOwnerEmail = order.customerEmail.toLowerCase() === 'esoweibi@gmail.com';
-    const targetRecipient = (isDefaultDevSandbox && !isOwnerEmail) ? 'esoweibi@gmail.com' : order.customerEmail;
-    const emailSubject = (isDefaultDevSandbox && !isOwnerEmail)
-      ? `[AccessGlobal Order #${order.orderId} for ${order.customerEmail}]: Total $${order.total}`
-      : `Order Confirmed: #${order.orderId} - AccessGlobal Network`;
+    const cleanRecipient = order.customerEmail.trim().toLowerCase();
+    const emailSubject = `Order Confirmed: #${order.orderId} - AccessGlobal Network`;
 
     try {
       let response: Response | null = null;
@@ -445,10 +430,12 @@ class EmailService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-Resend-Key': apiKey,
           },
           body: JSON.stringify({
             from: fromEmail,
-            to: [targetRecipient],
+            to: [cleanRecipient],
             subject: emailSubject,
             html: htmlContent,
           }),
@@ -464,10 +451,12 @@ class EmailService {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+              'X-Resend-Key': apiKey,
             },
             body: JSON.stringify({
               from: fromEmail,
-              to: [targetRecipient],
+              to: [cleanRecipient],
               subject: emailSubject,
               html: htmlContent,
             }),
@@ -491,7 +480,7 @@ class EmailService {
             },
             body: JSON.stringify({
               from: fromEmail,
-              to: [targetRecipient],
+              to: [cleanRecipient],
               subject: emailSubject,
               html: htmlContent,
             }),

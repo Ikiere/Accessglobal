@@ -42,6 +42,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      const user = api.getCurrentUser();
+      if (user) {
+        if (!customerName && user.name) setCustomerName(user.name);
+        if (!customerEmail && user.email) setCustomerEmail(user.email);
+      }
+      try {
+        const storedProfile = localStorage.getItem('agm_shipping_profile');
+        if (storedProfile) {
+          const prof = JSON.parse(storedProfile);
+          if (prof.fullName && !customerName) setCustomerName(prof.fullName);
+          if (prof.email && !customerEmail) setCustomerEmail(prof.email);
+          if (prof.street && !customerAddress) setCustomerAddress(`${prof.street}, ${prof.city} ${prof.postalCode}`);
+          if (prof.country) setCustomerCountry(prof.country);
+        }
+      } catch {}
     } else {
       document.body.style.overflow = '';
       setStep('cart');
@@ -86,13 +101,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     try {
       // Post order to backend / Supabase
-      await api.createOrder({
+      const result = await api.createOrder({
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim(),
         total: finalTotal,
         items: items.map((i) => ({
           productId: i.id,
           title: i.name,
+          maker: i.maker,
           price: i.price,
           quantity: i.quantity,
           imageUrl: i.image,
@@ -100,39 +116,43 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         paymentMethod: paymentMethod === 'card' ? 'Credit Card' : paymentMethod === 'apple' ? 'Apple Pay' : 'Bank Transfer',
         shippingAddress: `${customerAddress.trim()}, ${customerCountry}`,
       });
-    } catch (err) {
+
+      setIsSubmitting(false);
+      onClearCart();
+      onClose();
+      onOrderComplete(result.order);
+    } catch (err: any) {
       console.warn('[CartDrawer] Backend order recording warning (falling back to local receipt):', err);
+      const fallbackOrder: OrderDetails = {
+        orderNumber: `AGM-${Math.floor(100000 + Math.random() * 900000)}`,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim(),
+        customerAddress: customerAddress.trim(),
+        customerCountry,
+        items: items.map((i) => ({
+          id: i.id,
+          name: i.name,
+          maker: i.maker,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        subtotal: rawSubtotal,
+        discount: discountAmount,
+        total: finalTotal,
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+
+      setIsSubmitting(false);
+      onClearCart();
+      onClose();
+      onOrderComplete(fallbackOrder);
     }
-
-    const generatedOrder: OrderDetails = {
-      orderNumber: `AGM-${Math.floor(100000 + Math.random() * 900000)}`,
-      customerName: customerName.trim(),
-      customerEmail: customerEmail.trim(),
-      customerAddress: customerAddress.trim(),
-      customerCountry,
-      items: items.map((i) => ({
-        id: i.id,
-        name: i.name,
-        maker: i.maker,
-        price: i.price,
-        quantity: i.quantity,
-      })),
-      subtotal: rawSubtotal,
-      discount: discountAmount,
-      total: finalTotal,
-      date: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-
-    setIsSubmitting(false);
-    onClearCart();
-    onClose();
-    onOrderComplete(generatedOrder);
   };
 
   if (!isOpen) return null;

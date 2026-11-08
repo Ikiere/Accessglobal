@@ -24,7 +24,11 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const authHeader = (req.headers?.authorization as string) || (req.headers?.['x-resend-key'] as string) || '';
+    const headerKey = authHeader.startsWith('Bearer ') ? authHeader.substring(7).trim() : authHeader.trim();
+
     const apiKey =
+      (headerKey && headerKey.startsWith('re_') ? headerKey : null) ||
       process.env.VITE_RESEND_API_KEY ||
       process.env.RESEND_API_KEY ||
       '';
@@ -68,7 +72,7 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    const fromEmail = from || 'AccessGlobal <onboarding@resend.dev>';
+    const fromEmail = from || 'AccessGlobal <security@accessglobalmarket.com>';
     const recipients = Array.isArray(to) ? to : [to];
 
     // Forward to Resend API server-side

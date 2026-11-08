@@ -90,11 +90,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Link to="/contact" style={navLinkStyle('/contact')}>
               Contact
             </Link>
-            {currentUser && (
-              <Link to="/dashboard" style={navLinkStyle('/dashboard')}>
-                Dashboard
-              </Link>
-            )}
+            <Link to="/dashboard" style={navLinkStyle('/dashboard')}>
+              Orders & Tracking
+            </Link>
           </nav>
         </div>
 

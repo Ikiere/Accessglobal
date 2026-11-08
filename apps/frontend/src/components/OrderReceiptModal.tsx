@@ -3,10 +3,12 @@ import { IconCheck, IconPrinter, IconClose } from './icons';
 
 export interface OrderDetails {
   orderNumber: string;
+  dbId?: string;
   customerName: string;
   customerEmail: string;
   customerAddress: string;
   customerCountry: string;
+  status?: string;
   items: {
     id: string;
     name: string;

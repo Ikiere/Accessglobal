@@ -1,6 +1,7 @@
 import { Product, ProductSpec, catalogProducts } from '../data/products';
 import { getSupabase } from './supabaseClient';
 import { emailService, OrderConfirmationData } from './emailService';
+import { OrderDetails } from '../components/OrderReceiptModal';
 
 export interface ApiProduct {
   id: string;
@@ -88,6 +89,13 @@ function getPendingOtp(email: string): PendingOtpData | null {
 
 function generateOtpCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const msgUint8 = new TextEncoder().encode(password.trim() + ':accessglobal_salt_2026');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 function mapApiProductToProduct(item: any): Product {
@@ -236,7 +244,7 @@ export const api = {
       return { user, token };
     }
 
-    // 1. Try Supabase Auth native login
+    // 1. Try Supabase Auth native login (for users in auth.users)
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
@@ -261,7 +269,7 @@ export const api = {
       // Continue to public.users verified check
     }
 
-    // 2. Fallback: check public.users for registered customer
+    // 2. Resilient Fallback: check public.users for registered customer
     try {
       const { data: publicUser, error: pubErr } = await supabase
         .from('users')
@@ -270,6 +278,21 @@ export const api = {
         .maybeSingle();
 
       if (publicUser && !pubErr && publicUser.status === 'active') {
+        const inputHash = await hashPassword(password);
+
+        if (publicUser.password_hash) {
+          if (publicUser.password_hash !== inputHash) {
+            throw new Error('Incorrect password. Please verify your credentials and try again.');
+          }
+        } else {
+          // Initialize password_hash for existing user record
+          try {
+            await supabase.from('users').update({ password_hash: inputHash, updated_at: new Date().toISOString() }).eq('id', publicUser.id);
+          } catch {
+            // non-fatal
+          }
+        }
+
         const user: AuthUser = {
           id: String(publicUser.id),
           name: publicUser.name || cleanEmail.split('@')[0],
@@ -277,16 +300,16 @@ export const api = {
           role: (publicUser.role as any) || 'user',
           isVerified: true,
         };
-        const token = `supa-user-${Date.now()}`;
+        const token = `agm-session-${Date.now()}`;
         localStorage.setItem('agm_token', token);
         localStorage.setItem('agm_user', JSON.stringify(user));
         return { user, token };
       }
-    } catch {
-      // continue to error throw
+    } catch (err: any) {
+      if (err.message?.includes('Incorrect password')) throw err;
     }
 
-    throw new Error('Login failed. Please verify your email and password.');
+    throw new Error('No account found with this email, or password incorrect. Please verify your credentials or create an account.');
   },
 
   async register(name: string, email: string, password: string): Promise<AuthResponse> {
@@ -294,18 +317,18 @@ export const api = {
     const displayName = name.trim() || cleanEmail.split('@')[0];
     const supabase = getSupabase();
 
-    // 1. Check if an account already exists with this email address
+    // 1. Check if an active account already exists with this email address
     if (supabase) {
       try {
         const { data: existingUser } = await supabase
           .from('users')
-          .select('id, email, name')
+          .select('id, email, name, status, password_hash')
           .eq('email', cleanEmail)
           .maybeSingle();
 
-        if (existingUser) {
+        if (existingUser && existingUser.status === 'active' && existingUser.password_hash) {
           throw new Error(
-            `An account with email "${cleanEmail}" is already registered. Please switch to Sign In to log in with your password.`
+            `An account with email "${cleanEmail}" is already registered. Please click "Sign In" below to log in.`
           );
         }
       } catch (checkErr: any) {
@@ -321,7 +344,7 @@ export const api = {
     // from dispatching unbranded confirmation emails from noreply@mail.app.supabase.io.
     savePendingOtp(cleanEmail, displayName, otpCode, password);
 
-    // 4. Dispatch 6-digit OTP exclusively via Resend transactional engine
+    // 4. Dispatch 6-digit OTP exclusively via Resend transactional engine from verified domain
     const emailResult = await emailService.sendOtpVerificationEmail(cleanEmail, displayName, otpCode);
 
     const user: AuthUser = {
@@ -354,25 +377,50 @@ export const api = {
 
     const supabase = getSupabase();
     let resolvedUserId = pending.userId || `usr-${Date.now()}`;
-    let sessionToken = `auth-${Date.now()}`;
+    let sessionToken = `agm-user-${Date.now()}`;
+    const passwordHash = pending.password ? await hashPassword(pending.password) : null;
 
     if (supabase) {
-      let rpcSucceeded = false;
+      // 1. Persist user into public.users with active status and password_hash
+      try {
+        const { data: upsertData, error: upErr } = await supabase
+          .from('users')
+          .upsert(
+            [
+              {
+                name: pending.name,
+                email: cleanEmail,
+                role: 'user',
+                status: 'active',
+                password_hash: passwordHash,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ],
+            { onConflict: 'email' }
+          )
+          .select()
+          .maybeSingle();
 
-      // 1. Attempt pre-confirmed user creation via database RPC (avoids Supabase sending emails)
+        if (!upErr && upsertData?.id) {
+          resolvedUserId = String(upsertData.id);
+        }
+      } catch (dbErr) {
+        console.warn('[DirectSupabase] Failed to write user to public.users:', dbErr);
+      }
+
+      // 2. Also invoke create_confirmed_user RPC if available
       if (pending.password) {
         try {
-          const { data: rpcUserId, error: rpcErr } = await supabase.rpc('create_confirmed_user', {
+          const { data: rpcUserId } = await supabase.rpc('create_confirmed_user', {
             p_email: cleanEmail,
             p_password: pending.password,
             p_name: pending.name,
           });
 
-          if (!rpcErr && rpcUserId) {
+          if (rpcUserId) {
             resolvedUserId = String(rpcUserId);
-            rpcSucceeded = true;
-
-            // Log in with official credentials to establish valid Supabase Auth session token
+            // Attempt to establish native Supabase session
             try {
               const { data: sessionData } = await supabase.auth.signInWithPassword({
                 email: cleanEmail,
@@ -386,32 +434,7 @@ export const api = {
             }
           }
         } catch {
-          // RPC not deployed in database yet; proceed with direct public.users upsert
-        }
-      }
-
-      // 2. If RPC was bypassed or unavailable, persist user directly into public.users
-      if (!rpcSucceeded) {
-        try {
-          const { data: upsertData } = await supabase.from('users').upsert(
-            [
-              {
-                name: pending.name,
-                email: cleanEmail,
-                role: 'user',
-                status: 'active',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              },
-            ],
-            { onConflict: 'email' }
-          ).select().maybeSingle();
-
-          if (upsertData?.id) {
-            resolvedUserId = String(upsertData.id);
-          }
-        } catch (dbErr) {
-          console.warn('[DirectSupabase] Failed to write user to public.users:', dbErr);
+          // RPC is optional; public.users is the primary record
         }
       }
     }
@@ -462,25 +485,34 @@ export const api = {
     localStorage.removeItem('agm_user');
   },
 
-  // Orders API - directly writes to Supabase orders table + dispatches Resend confirmation email
-  async createOrder(payload: ApiOrderPayload): Promise<{ success: boolean; orderId: string }> {
-    const orderId = `AGM-${Date.now().toString().slice(-6)}`;
+  // Orders API - writes directly to Supabase orders table + dispatches Resend receipt
+  async createOrder(payload: ApiOrderPayload): Promise<{ success: boolean; order: OrderDetails; orderId: string }> {
     const supabase = getSupabase();
+    let dbId: string | undefined;
+    let orderNumber = `AGM-${Math.floor(100000 + Math.random() * 900000)}`;
 
     if (supabase) {
       try {
-        const { error } = await supabase.from('orders').insert([
-          {
-            customer_name: payload.customerName,
-            customer_email: payload.customerEmail,
-            total: payload.total,
-            status: 'Processing',
-            items: payload.items,
-            payment_method: payload.paymentMethod || 'Bonded Card',
-            shipping_address: payload.shippingAddress,
-          },
-        ]);
-        if (error) {
+        const { data, error } = await supabase
+          .from('orders')
+          .insert([
+            {
+              customer_name: payload.customerName.trim(),
+              customer_email: payload.customerEmail.toLowerCase().trim(),
+              total: payload.total,
+              status: 'Processing',
+              items: payload.items,
+              payment_method: payload.paymentMethod || 'Bonded Card',
+              shipping_address: payload.shippingAddress,
+            },
+          ])
+          .select()
+          .single();
+
+        if (!error && data) {
+          dbId = String(data.id);
+          orderNumber = `AGM-${data.id.split('-')[0].toUpperCase()}`;
+        } else if (error) {
           console.warn('[DirectSupabase] Order insert warning:', error.message);
         }
       } catch (err) {
@@ -488,9 +520,43 @@ export const api = {
       }
     }
 
+    const orderDetails: OrderDetails = {
+      orderNumber,
+      dbId,
+      customerName: payload.customerName,
+      customerEmail: payload.customerEmail,
+      customerAddress: payload.shippingAddress.split(',')[0] || payload.shippingAddress,
+      customerCountry: payload.shippingAddress.split(',').pop()?.trim() || 'Global Transit',
+      status: 'Processing',
+      items: payload.items.map((it) => ({
+        id: it.productId,
+        name: it.title,
+        maker: (it as any).maker || 'Verified Workshop',
+        price: it.price,
+        quantity: it.quantity,
+      })),
+      subtotal: payload.total,
+      discount: 0,
+      total: payload.total,
+      date: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+
+    // Cache locally in localStorage for fast immediate lookup
+    try {
+      const recent = JSON.parse(localStorage.getItem('agm_recent_orders') || '[]');
+      const filtered = recent.filter((r: any) => r.orderNumber !== orderNumber);
+      localStorage.setItem('agm_recent_orders', JSON.stringify([orderDetails, ...filtered]));
+    } catch {}
+
     // Dispatch itemized Order Confirmation Email via Resend
     const confirmationData: OrderConfirmationData = {
-      orderId,
+      orderId: orderNumber,
       customerName: payload.customerName,
       customerEmail: payload.customerEmail,
       items: payload.items.map((it) => ({
@@ -498,23 +564,147 @@ export const api = {
         quantity: it.quantity,
         price: it.price,
         imageUrl: it.imageUrl,
+        maker: (it as any).maker,
       })),
       subtotal: payload.total,
       customsDuty: 0,
       shipping: 0,
       total: payload.total,
       shippingAddress: payload.shippingAddress,
-      createdAt: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
+      createdAt: orderDetails.date,
     };
 
     emailService.sendOrderConfirmationEmail(confirmationData).catch((err) => {
       console.warn('[EmailService] Order email warning:', err);
     });
 
-    return { success: true, orderId };
+    return { success: true, order: orderDetails, orderId: orderNumber };
+  },
+
+  // Fetch orders from Supabase (filtered by customerEmail if provided)
+  async getOrders(customerEmail?: string): Promise<OrderDetails[]> {
+    const supabase = getSupabase();
+    const cleanEmail = customerEmail?.trim().toLowerCase();
+
+    if (supabase) {
+      try {
+        let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
+        if (cleanEmail) {
+          query = query.ilike('customer_email', cleanEmail);
+        }
+        const { data, error } = await query;
+        if (!error && Array.isArray(data) && data.length > 0) {
+          return data.map((row: any) => {
+            const shortId = row.id ? `AGM-${String(row.id).split('-')[0].toUpperCase()}` : `AGM-${Math.floor(100000 + Math.random() * 900000)}`;
+            const rawItems = Array.isArray(row.items) ? row.items : [];
+            const parsedItems = rawItems.map((it: any) => ({
+              id: it.productId || it.id || 'item',
+              name: it.title || it.name || 'Workshop Piece',
+              maker: it.maker || 'Verified Workshop',
+              price: Number(it.price || 0),
+              quantity: Number(it.quantity || 1),
+            }));
+
+            const addr = row.shipping_address || 'Registered Consignee Address';
+            const addrParts = addr.split(',');
+            const country = addrParts.length > 1 ? addrParts.pop()?.trim() || 'Global Transit' : 'Global Transit';
+            const street = addrParts.join(',').trim() || addr;
+
+            return {
+              orderNumber: shortId,
+              dbId: String(row.id),
+              customerName: row.customer_name || 'Verified Consignee',
+              customerEmail: row.customer_email || cleanEmail || '',
+              customerAddress: street,
+              customerCountry: country,
+              status: row.status || 'Processing',
+              items: parsedItems,
+              subtotal: Number(row.total || 0),
+              discount: 0,
+              total: Number(row.total || 0),
+              date: new Date(row.created_at || Date.now()).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            };
+          });
+        }
+      } catch (err) {
+        console.warn('[DirectSupabase] getOrders query failed:', err);
+      }
+    }
+
+    // Fallback to localStorage recent orders
+    try {
+      const stored = localStorage.getItem('agm_recent_orders');
+      if (stored) {
+        const parsed: OrderDetails[] = JSON.parse(stored);
+        if (cleanEmail) {
+          return parsed.filter((o) => o.customerEmail?.toLowerCase() === cleanEmail);
+        }
+        return parsed;
+      }
+    } catch {}
+
+    return [];
+  },
+
+  // Instant Consignment Tracker: Lookup order by Order Number, UUID, or email
+  async trackOrder(query: string): Promise<OrderDetails | null> {
+    const clean = query.trim();
+    if (!clean) return null;
+    const supabase = getSupabase();
+
+    if (supabase) {
+      try {
+        // 1. Try exact UUID
+        if (clean.includes('-') && clean.length > 20) {
+          const { data, error } = await supabase.from('orders').select('*').eq('id', clean).maybeSingle();
+          if (!error && data) {
+            const list = await this.getOrders();
+            const found = list.find((o) => o.dbId === data.id);
+            if (found) return found;
+          }
+        }
+
+        // 2. Try email
+        if (clean.includes('@')) {
+          const orders = await this.getOrders(clean);
+          if (orders.length > 0) return orders[0];
+        }
+
+        // 3. Search all orders by orderNumber or ID prefix
+        const allOrders = await this.getOrders();
+        const found = allOrders.find(
+          (o) =>
+            o.orderNumber.toLowerCase() === clean.toLowerCase() ||
+            o.dbId?.toLowerCase().startsWith(clean.toLowerCase()) ||
+            o.customerEmail.toLowerCase() === clean.toLowerCase() ||
+            clean.toLowerCase().includes(o.orderNumber.replace('AGM-', '').toLowerCase())
+        );
+        if (found) return found;
+      } catch (err) {
+        console.warn('[DirectSupabase] trackOrder error:', err);
+      }
+    }
+
+    // Fallback to localStorage
+    try {
+      const stored = localStorage.getItem('agm_recent_orders');
+      if (stored) {
+        const parsed: OrderDetails[] = JSON.parse(stored);
+        const match = parsed.find(
+          (o) =>
+            o.orderNumber.toLowerCase() === clean.toLowerCase() ||
+            o.customerEmail.toLowerCase() === clean.toLowerCase()
+        );
+        if (match) return match;
+      }
+    } catch {}
+
+    return null;
   },
 };
